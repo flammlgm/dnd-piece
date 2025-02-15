@@ -1,0 +1,18 @@
+{
+  "header": {
+    "btn_themes": {
+      "dark": "Dark theme",
+      "light": "Light theme"
+    }
+  },
+  "welcome": "Welcome to CrocoCRM!",
+  "description": "CrocoCRM is a tool designed specifically for traffic arbitrage. Manage tasks, analyze data, automate workflows, and increase profits.",
+  "features_title": "Key features of the system:",
+  "features": {
+    "campaigns": "Campaign management.",
+    "analytics": "Traffic analytics.",
+    "partners": "Affiliate program management.",
+    "automation": "Report and task automation."
+  },
+  "conclusion": "CrocoCRM helps you focus on what matters most – achieving your goals!"
+}
