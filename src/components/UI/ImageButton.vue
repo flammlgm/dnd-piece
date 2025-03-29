@@ -6,6 +6,10 @@ const props = defineProps({
     type: String,
     default: "center", // Позиция картинки
   },
+  scale: {
+    type: Number,
+    default: 1.1, // Коэффициент масштабирования при наведении
+  },
 });
 </script>
 
@@ -23,7 +27,7 @@ const props = defineProps({
       class="absolute inset-0 bg-black bg-opacity-50 group-hover:bg-opacity-30 transition-opacity"
     ></div>
     <span
-      class="absolute inset-0 flex items-center justify-center text-white text-lg font-bold sm:text-xl md:text-2xl lg:text-5xl"
+      class="absolute font-mono font-bold inset-0 flex items-center justify-center text-white text-lg sm:text-xl md:text-2xl lg:text-5xl"
     >
       {{ text }}
     </span>
