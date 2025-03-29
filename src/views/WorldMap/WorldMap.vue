@@ -5,12 +5,12 @@ import { Network } from 'vis-network'
 export default {
   data() {
     return {
-      nodes: new DataSet([]),
-      edges: new DataSet([]),
-      nodeCounter: 1,
-      network: null,
-      connectionCount: 6,
-      options: {
+      nodes: new DataSet([]),  // Хранилище вершин
+      edges: new DataSet([]),  // Хранилище рёбер
+      nodeCounter: 1,          // Счётчик для ID вершин
+      network: null,           // Ссылка на экземпляр графа
+      connectionCount: 6,      // Максимум связей у вершины
+      options: {               // Настройки отображения
         nodes: {
           shape: 'dot',
           size: 15,
@@ -22,36 +22,27 @@ export default {
           color: '#93c5fd',
           smooth: false
         },
-        physics: false,
+        physics: false,        // Физика отключена
         interaction: {
-          dragNodes: true,
-          selectable: true
+          dragNodes: true,     // Можно перемещать вершины
+          selectable: true     // Можно выбирать вершины
         }
       }
     }
   },
 
   methods: {
+    // Добавление новой вершины
     addNode() {
       const id = this.nodeCounter++
       const x = Math.random() * 800
       const y = Math.random() * 500
       
       this.nodes.add({ id, label: `${id}`, x, y })
-      this.updateConnections()
+      this.updateConnections() // Обновляем связи
     },
 
-    // Обновляем связи при любом изменении позиции
-    handleNodeDrag() {
-      if (this.dynamicConnections) {
-        const movedNodes = this.network.getPositions()
-        Object.entries(movedNodes).forEach(([id, pos]) => {
-          this.nodes.update({ id, x: pos.x, y: pos.y })
-        })
-        this.updateConnections()
-      }
-    },
-
+    // Основная функция обновления связей
     updateConnections() {
       if (this.nodes.length < 2) {
         this.edges.clear()
@@ -59,10 +50,9 @@ export default {
       }
 
       const nodes = this.nodes.get()
-      const newEdges = []
-      const connectionMap = {}
+      const edgeMap = new Map() // Для уникальных рёбер
 
-      // 1. Собираем все возможные пары и сортируем по расстоянию
+      // 1. Собираем все возможные пары вершин
       const allPairs = []
       for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
@@ -73,59 +63,83 @@ export default {
           })
         }
       }
+
+      // 2. Сортируем пары по расстоянию (от ближних к дальним)
       allPairs.sort((a, b) => a.distance - b.distance)
 
-      // 2. Инициализируем счетчик связей
+      // 3. Считаем текущие связи для каждой вершины
+      const connectionCounts = {}
       nodes.forEach(node => {
-        connectionMap[node.id] = 0
+        connectionCounts[node.id] = 0
       })
 
-      // 3. Добавляем связи, пока не достигнем лимита
+      // 4. Добавляем связи, соблюдая лимит
       allPairs.forEach(pair => {
-        if (connectionMap[pair.from] < this.connectionCount && 
-            connectionMap[pair.to] < this.connectionCount) {
-          newEdges.push({
-            id: `${pair.from}-${pair.to}`,
-            from: pair.from,
-            to: pair.to
-          })
-          connectionMap[pair.from]++
-          connectionMap[pair.to]++
+        if (connectionCounts[pair.from] < this.connectionCount && 
+            connectionCounts[pair.to] < this.connectionCount) {
+          const edgeId = this.getEdgeId(pair.from, pair.to)
+          if (!edgeMap.has(edgeId)) {
+            edgeMap.set(edgeId, {
+              id: edgeId,
+              from: pair.from,
+              to: pair.to
+            })
+            connectionCounts[pair.from]++
+            connectionCounts[pair.to]++
+          }
         }
       })
 
-      // 4. Применяем изменения
+      // 5. Полное обновление рёбер
       this.edges.clear()
-      this.edges.add(newEdges)
+      this.edges.add(Array.from(edgeMap.values()))
     },
 
+    // Генерация ID для ребра (A-B и B-A будут одинаковые)
+    getEdgeId(from, to) {
+      return [from, to].sort().join('-')
+    },
+
+    // Расчёт расстояния между вершинами
     calculateDistance(node1, node2) {
       const dx = node1.x - node2.x
       const dy = node1.y - node2.y
       return Math.sqrt(dx * dx + dy * dy)
     },
 
+    // Обработчик перемещения вершины
+    handleNodeDrag() {
+      const movedNodes = this.network.getPositions()
+      Object.entries(movedNodes).forEach(([id, pos]) => {
+        this.nodes.update({ id, x: pos.x, y: pos.y })
+      })
+      this.updateConnections() // Обновляем связи после перемещения
+    },
+
+    // Инициализация графа
     initNetwork() {
       this.network = new Network(
         this.$refs.networkContainer,
         { nodes: this.nodes, edges: this.edges },
         this.options
       )
-
-      // Вешаем обработчик перемещения в реальном времени
-      this.network.on('drag', this.handleNodeDrag)
+      // Вешаем обработчик перемещения
+      this.network.on('dragEnd', this.handleNodeDrag)
     }
   },
 
   mounted() {
     this.initNetwork()
-    // Стартовые вершины
-    for (let i = 0; i < 5; i++) this.addNode()
+    // Добавляем начальные вершины с небольшой задержкой
+    setTimeout(() => {
+      for (let i = 0; i < 5; i++) this.addNode()
+    }, 50)
   },
 
   beforeUnmount() {
+    // Очищаем ресурсы
     if (this.network) {
-      this.network.off('drag')
+      this.network.off('dragEnd')
       this.network.destroy()
     }
   }
@@ -142,10 +156,11 @@ export default {
         Добавить вершину
       </button>
       <span class="text-sm text-gray-600">
-        Максимум {{ connectionCount }} связей на вершину
+        У каждой вершины максимум {{ connectionCount }} связей
       </span>
     </div>
 
+    <!-- Контейнер для графа -->
     <div 
       ref="networkContainer" 
       class="border border-gray-300 rounded-lg bg-white p-2 h-[600px]"
