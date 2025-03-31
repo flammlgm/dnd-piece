@@ -2,7 +2,7 @@ export const useClassesStore = [
   {
     id: 1,
     text: "Артист",
-    image: "src/assets/image/Classes/Artist.jpg",
+    image: "/image/Classes/Artist.jpg",
     objectPosition: "50%",
     description: "Мастер харизмы и выступлений, вдохновляющий союзников и деморализующий врагов.",
     hitDice: "1d8 за уровень",
@@ -29,7 +29,7 @@ export const useClassesStore = [
   {
     id: 2,
     text: "Воин",
-    image: "src/assets/image/Classes/Warrior.jpg",
+    image: "/image/Classes/Warrior.jpg",
     objectPosition: "90% 10%",
     description: "Универсальный боец, мастер всех видов оружия и тактик ближнего боя.",
     hitDice: "1d10 за уровень",
@@ -56,7 +56,7 @@ export const useClassesStore = [
   {
     id: 3,
     text: "Громила",
-    image: "src/assets/image/Classes/Bruiser.jpg",
+    image: "/image/Classes/Bruiser.jpg",
     objectPosition: "90% 10%",
     description: "Живой таран, сокрушающий врагов грубой силой и массой тела.",
     hitDice: "1d12 за уровень",
@@ -83,7 +83,7 @@ export const useClassesStore = [
   {
     id: 4,
     text: "Изобретатель",
-    image: "src/assets/image/Classes/Tinkerer.jpg",
+    image: "/image/Classes/Tinkerer.jpg",
     objectPosition: "90% 10%",
     description: "Гений инженерии, создающий смертоносные устройства и полезные гаджеты.",
     hitDice: "1d8 за уровень",
@@ -110,7 +110,7 @@ export const useClassesStore = [
   {
     id: 5,
     text: "Мастер Боевых Искусств",
-    image: "src/assets/image/Classes/Martial_Artist.jpg",
+    image: "/image/Classes/Martial_Artist.jpg",
     objectPosition: "90% 10%",
     description: "Боец, использующий энергию тела для сверхчеловеческих подвигов.",
     hitDice: "1d10 за уровень",
@@ -137,7 +137,7 @@ export const useClassesStore = [
   {
     id: 6,
     text: "Охотник",
-    image: "src/assets/image/Classes/Rogue.jpg",
+    image: "/image/Classes/Rogue.jpg",
     objectPosition: "90% 10%",
     description: "Следопыт и мастер скрытных атак, специалист по выживанию и охоте.",
     hitDice: "1d8 за уровень",
@@ -164,7 +164,7 @@ export const useClassesStore = [
   {
     id: 7,
     text: "Священник",
-    image: "src/assets/image/Classes/Priest.jpg",
+    image: "/image/Classes/Priest.jpg",
     objectPosition: "top",
     description: "Проводник божественной силы, исцеляющий союзников и карающий нечестивцев.",
     hitDice: "1d8 за уровень",
@@ -191,7 +191,7 @@ export const useClassesStore = [
   {
     id: 8,
     text: "Стрелок",
-    image: "src/assets/image/Classes/arksman.jpg",
+    image: "/image/Classes/Marksman.jpg",
     objectPosition: "80% 30%",
     description: "Снайпер, поражающий цели с невероятной точностью на любых дистанциях.",
     hitDice: "1d8 за уровень",
@@ -218,7 +218,7 @@ export const useClassesStore = [
   {
     id: 9,
     text: "Химик",
-    image: "src/assets/image/Classes/Chemist.jpg",
+    image: "/image/Classes/Chemist.jpg",
     objectPosition: "90% 40%",
     description: "Алхимик, создающий зелья, яды и взрывчатые смеси.",
     hitDice: "1d6 за уровень",

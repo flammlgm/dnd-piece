@@ -1,31 +1,41 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-import pkg from "pg";
-
-dotenv.config();
-
+import express from 'express';
+import cors from 'cors';
+import pkg from 'pg';
 const { Pool } = pkg;
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
-
 const app = express();
-const PORT = process.env.PORT || 5000;
-
 app.use(cors());
 app.use(express.json());
 
-pool.connect()
-  .then(() => console.log("Успешное подключение к PostgreSQL"))
-  .catch(err => console.error("Ошибка подключения к PostgreSQL:", err));
-
-app.get("/", (req, res) => {
-  res.send("Сервер работает!");
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
 });
 
+// Получить все классы
+app.get('/api/classes', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM classes');
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server Error');
+  }
+});
+
+// Получить один класс по ID
+app.get('/api/classes/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rows } = await pool.query('SELECT * FROM classes WHERE id = $1', [id]);
+    res.json(rows[0] || null);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server Error');
+  }
+});
+
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Сервер запущен на http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
