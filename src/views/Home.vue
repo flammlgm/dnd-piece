@@ -10,31 +10,31 @@ const navigate = (path) => {
 
 const pages = [
 {
-    image: "src/assets/image/Races/Fishmans.jpg",
+    image: "/image/Races/Fishmans.jpg",
     text: "Расы",
     objectPosition: "top",
     path: "/races",
   },
   {
-    image: "src/assets/image/Classes/Priest.jpg",
+    image: "/image/Classes/Priest.jpg",
     text: "Классы",
     objectPosition: "top",
     path: "/classes",
   },
   {
-    image: "src/assets/image/Roles/Плотник.jpg",
+    image: "/image/Roles/Плотник.jpg",
     text: "Роли",
     objectPosition: "50% 20%",
     path: "/roles",
   },
   {
-    image: "src/assets/image/Classes/Tinkerer.jpg",
+    image: "/image/Classes/Tinkerer.jpg",
     text: "Мир",
     objectPosition: "90% 10%",
     path: "/world",
   },
   {
-    image: "src/assets/image/WorldMap.webp",
+    image: "/image/WorldMap.webp",
     text: "Карта",
     objectPosition: "",
     path: "/map",

@@ -1,31 +1,29 @@
-<script setup>
-import { useRouter } from "vue-router";
-import ImageButton from "@/components/ui/ImageButton.vue";
-import { useClassesStore } from "../../stores/classesStore";
-
-const router = useRouter();
-
-const classes = useClassesStore
-
-const navigate = (path) => {
-  router.push(path);
-};
-</script>
-
 <template>
-  
-  <div class="container mx-auto p-4">
-    <h1 class="text-white font-bold text-5xl m-10">Классы</h1>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <ImageButton 
-        v-for="cls in classes"
-        :key="cls.id"
-        :image="cls.image"
-        :text="cls.text"
-        :objectPosition="cls.objectPosition"
-         @click="navigate(`/classes/${cls.id}`)"
-      />
-    </div>
+  <div v-if="classData" class="p-6 bg-gray-800 text-white rounded-lg shadow-lg">
+    <h1 class="text-3xl font-bold mb-4">{{ classData.name }}</h1>
+    <p><strong>Описание:</strong> {{ classData.description || 'Нет описания' }}</p>
+    <p><strong>Кость хитов:</strong> {{ classData.hit_dice }}</p>
+    <p><strong>Класс-потомок:</strong> {{ classData.is_subclass ? 'Да' : 'Нет' }}</p>
+  </div>
+
+  <div v-else class="text-center text-white">
+    Загружаем данные...
   </div>
 </template>
 
+<script setup>
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+
+const classData = ref(null);
+
+onMounted(async () => {
+  try {
+    // Запрос на сервер, чтобы получить данные по классу с id=1
+    const response = await axios.get('http://localhost:5000/api/classes/1');
+    classData.value = response.data;
+  } catch (error) {
+    console.error('Ошибка при загрузке данных:', error);
+  }
+});
+</script>
