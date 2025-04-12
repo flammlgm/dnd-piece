@@ -1,6 +1,6 @@
 <script setup>
 import { useRouter } from "vue-router";
-import ImageButton from "@/components/ui/ImageButton.vue";
+import ImageButton from "@/components/UI/Button/ImageButton.vue";
 import { useRacesStore } from "../../stores/racesStore";
 
 const router = useRouter();
