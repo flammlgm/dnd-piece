@@ -10,15 +10,15 @@ const navigate = (path) => {
 
 const pages = [
 {
-    image: "/image/Races/Fishmans.jpg",
+    image: "/image/Races/Humans.jpg",
     text: "Расы",
-    objectPosition: "top",
+    objectPosition: "50% 10%",
     path: "/races",
   },
   {
-    image: "/image/Classes/Priest.jpg",
+    image: "/image/Classes/Bruiser.jpg",
     text: "Классы",
-    objectPosition: "top",
+    objectPosition: "50% 20%",
     path: "/classes",
   },
   {
@@ -28,7 +28,7 @@ const pages = [
     path: "/roles",
   },
   {
-    image: "/image/Classes/Tinkerer.jpg",
+    image: "/image/World.jpg",
     text: "Мир",
     objectPosition: "90% 10%",
     path: "/world",
