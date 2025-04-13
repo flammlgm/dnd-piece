@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import classesRouter from './routes/classes.routes.js';
 import subclassesRouter from './routes/subclasses.routes.js';
-// Импортируйте остальные роутеры
+import spellsRouter from './routes/spells.routes.js';
 
 const app = express();
 
@@ -17,6 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/classes', classesRouter);
 app.use('/api/subclasses', subclassesRouter);
+app.use('/api/spells', spellsRouter);
 // Добавьте остальные маршруты
 
 // Обработка OPTIONS для CORS

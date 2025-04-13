@@ -21,6 +21,118 @@ const currentClass = ref(null);
 const subclasses = ref([]);
 const loading = ref(true);
 
+const spells = ref([]);
+const isEditingSpell = ref(false);
+const isCreatingSpell = ref(false);
+const isViewingSpell = ref(false);
+const selectedSpell = ref(null);
+const editingSpell = ref(null);
+const newSpell = ref({
+  name: 'Название',
+  school: 'Школа',
+  level: 'Природные силы',
+  casting_time: 'Время накладывания',
+  distance: 'Дистанция',
+  duration: 'Длительность',
+  verbal: false,
+  somatic: false,
+  material: false,
+  material_description: 'Материальные компоненты',
+  description: 'Описание',
+  class_id: classId
+});
+
+const spellLevels = ['Природные силы', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+const spellSchools = [
+  'Воплощение', 'Вызов', 'Иллюзия', 'Некромантия', 
+  'Ограждение', 'Очарование', 'Преобразование', 'Прорицание'
+];
+
+const fetchSpells = async () => {
+  try {
+    const { data } = await axios.get(`http://localhost:5000/api/spells/class/${classId}`);
+    spells.value = data;
+  } catch (err) {
+    console.error('Ошибка загрузки заклинаний:', err);
+  }
+};
+
+const startCreatingSpell = () => {
+  isCreatingSpell.value = true;
+  newSpell.value = {
+    name: 'Название',
+    school: 'Школа',
+    level: 'Природные силы',
+    casting_time: 'Время накладывания',
+    distance: 'Дистанция',
+    duration: 'Длительность',
+    verbal: false,
+    somatic: false,
+    material: false,
+    material_description: 'Материальные компоненты',
+    description: 'Описание',
+    class_id: classId
+  };
+};
+
+const viewSpell = (spell) => {
+  selectedSpell.value = spell;
+  isViewingSpell.value = true;
+};
+
+const startEditingSpell = (spell) => {
+  editingSpell.value = JSON.parse(JSON.stringify(spell));
+  isEditingSpell.value = true;
+  isViewingSpell.value = false;
+};
+
+const createSpell = async () => {
+  try {
+    const { data } = await axios.post('http://localhost:5000/api/spells', newSpell.value);
+    spells.value.push(data);
+    isCreatingSpell.value = false;
+  } catch (err) {
+    console.error('Ошибка создания заклинания:', err);
+  }
+};
+
+const updateSpell = async () => {
+  try {
+    const { data } = await axios.put(
+      `http://localhost:5000/api/spells/${editingSpell.value.id}`,
+      editingSpell.value
+    );
+    
+    const index = spells.value.findIndex(s => s.id === data.id);
+    if (index >= 0) {
+      spells.value[index] = data;
+    }
+    
+    isEditingSpell.value = false;
+    selectedSpell.value = data;
+    isViewingSpell.value = true;
+  } catch (err) {
+    console.error('Ошибка обновления заклинания:', err);
+  }
+};
+
+const deleteSpell = async (id) => {
+  if (confirm('Удалить заклинание?')) {
+    try {
+      await axios.delete(`http://localhost:5000/api/spells/${id}`);
+      spells.value = spells.value.filter(s => s.id !== id);
+      isViewingSpell.value = false;
+    } catch (err) {
+      console.error('Ошибка удаления заклинания:', err);
+    }
+  }
+};
+
+const cancelSpellEdit = () => {
+  isEditingSpell.value = false;
+  isCreatingSpell.value = false;
+  isViewingSpell.value = false;
+};
 // Состояния интерфейса
 const activeTab = ref('main');
 const showSubclasses = ref(false);
@@ -289,7 +401,35 @@ const removeSubclassSkill = (levelIndex, skillIndex) => {
   editSubclassData.value.features.levels[levelIndex].skills.splice(skillIndex, 1);
 };
 
-onMounted(fetchData);
+const editSpell = (spell) => {
+  editingSpell.value = JSON.parse(JSON.stringify(spell));
+  isEditingSpell.value = true;
+};
+// Методы для работы с заклинаниями
+
+const resetNewSpell = () => {
+  newSpell.value = {
+    name: 'Новое заклинание',
+    school: 'Школа магии',
+    level: '1',
+    casting_time: '1 действие',
+    distance: 'На себя',
+    duration: 'Мгновенно',
+    verbal: false,
+    somatic: false,
+    material: false,
+    material_description: 'Не требуется',
+    description: 'Описание эффектов заклинания',
+    class_id: classId
+  };
+};
+
+
+onMounted(() => {
+  fetchData();
+  fetchSpells();
+});
+
 </script>
 
 <template>
@@ -537,10 +677,10 @@ onMounted(fetchData);
           <button 
             @click="activeTab = 'main'"
             :class="{
-              'bg-blue-500 text-gray-900': activeTab === 'main',
-              'bg-gray-700 hover:bg-gray-600': activeTab !== 'main'
+              'bg-blue-600 text-white hover:bg-blue-700': activeTab === 'main',
+              'bg-gray-800 border border-gray-600 hover:border-blue-600': activeTab !== 'main'
             }"
-            class="px-4 py-2 rounded-lg font-medium transition-colors"
+            class="px-3 py-1 rounded-lg font-medium transition-colors"
           >
             Навыки
           </button>
@@ -548,10 +688,10 @@ onMounted(fetchData);
           <button 
             @click="activeTab = 'abilities'"
             :class="{
-              'bg-blue-500 text-gray-900': activeTab === 'abilities',
-              'bg-gray-700 hover:bg-gray-600': activeTab !== 'abilities'
+              'bg-blue-600 text-white hover:bg-blue-700': activeTab === 'abilities',
+              'bg-gray-800 border border-gray-600 hover:border-blue-600': activeTab !== 'abilities'
             }"
-            class="px-4 py-2 rounded-lg font-medium transition-colors"
+            class="px-3 py-1 rounded-lg font-medium transition-colors"
           >
             Особые силы
           </button>
@@ -559,7 +699,7 @@ onMounted(fetchData);
           <div class="relative">
             <button 
               @click="showSubclasses = !showSubclasses"
-              class="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg font-medium transition-colors"
+              class="flex items-center gap-2 px-3 py-1  bg-gray-800 border border-gray-600 hover:border-blue-600 rounded-lg font-medium transition-colors"
             >
               Подклассы
               <ChevronDown v-if="!showSubclasses" class="w-4 h-4"/>
@@ -633,7 +773,7 @@ onMounted(fetchData);
                       </div>
                     </template>
                     <template v-else>
-                      {{ level[column.key] || '—' }}
+                      {{ level[column.key] || '-' }}
                     </template>
                   </td>
                 </tr>
@@ -647,7 +787,7 @@ onMounted(fetchData);
             <div class="prose prose-invert max-w-none">
             <!-- Владения -->
             <h3 class="text-xl mb-2">Владения</h3>
-            <h4><strong>Броня:</strong> {{ currentClass.proficiencies.armor || '—' }}</h4>
+            <h4><strong>Броня:</strong> {{ currentClass.proficiencies.armor || '-' }}</h4>
             
             <h4><strong>Оружие:</strong></h4>
             <ul v-if="currentClass.proficiencies.weapons?.length">
@@ -655,9 +795,9 @@ onMounted(fetchData);
                 {{ weapon }}
               </li>
             </ul>
-            <p v-else>—</p>
+            <p v-else>-</p>
             
-            <p><strong>Инструменты:</strong> {{ currentClass.proficiencies.tools || '—' }}</p>
+            <p><strong>Инструменты:</strong> {{ currentClass.proficiencies.tools || '-' }}</p>
             
             <p><strong>Спасброски:</strong> 
               <span v-if="currentClass.proficiencies.savingThrows?.length">
@@ -666,7 +806,7 @@ onMounted(fetchData);
               <span v-else>-</span>
             </p>
             
-            <p><strong>Навыки:</strong> {{ currentClass.proficiencies.skills || '—' }}</p>
+            <p><strong>Навыки:</strong> {{ currentClass.proficiencies.skills || '-' }}</p>
             
             <!-- Снаряжение -->
             <h3 class="text-xl mb-4">Снаряжение</h3>
@@ -675,7 +815,7 @@ onMounted(fetchData);
                 {{ item }}
               </li>
             </ul>
-            <p v-else>—</p>
+            <p v-else>-</p>
           </div>
           </div>
 
@@ -702,11 +842,242 @@ onMounted(fetchData);
 
         <!-- Вкладка особых сил -->
         <div v-else-if="activeTab === 'abilities'" class="bg-gray-800 rounded-xl p-6">
-          <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-            <Sparkles class="w-6 h-6"/> Особые силы
-          </h2>
-          <p class="text-gray-400">Здесь будут отображаться особые силы и заклинания класса</p>
+    <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+      <Sparkles class="w-6 h-6"/> Особые силы
+      <button 
+        @click="startCreatingSpell"
+        class="ml-auto px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm"
+      >
+        Добавить заклинание
+      </button>
+    </h2>
+
+    <!-- Форма создания нового заклинания -->
+    <div v-if="isCreatingSpell" class="mb-6 p-4 bg-gray-700/50 rounded-lg">
+      <h3 class="text-lg font-bold mb-3">Новое заклинание</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <InputField v-model="newSpell.name" label="Название" />
+        <div>
+          <label class="block mb-1">Школа</label>
+          <select v-model="newSpell.school" class="w-full p-2 bg-gray-700 rounded">
+            <option v-for="school in spellSchools" :key="school" :value="school">{{ school }}</option>
+          </select>
         </div>
+        <div>
+          <label class="block mb-1">Уровень</label>
+          <select v-model="newSpell.level" class="w-full p-2 bg-gray-700 rounded">
+            <option v-for="level in spellLevels" :key="level" :value="level">{{ level }}</option>
+          </select>
+        </div>
+        <InputField v-model="newSpell.casting_time" label="Время накладывания" />
+        <InputField v-model="newSpell.distance" label="Дистанция" />
+        <InputField v-model="newSpell.duration" label="Длительность" />
+      </div>
+      
+      <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="flex items-center">
+          <input type="checkbox" id="verbal" v-model="newSpell.verbal" class="mr-2">
+          <label for="verbal">Вербальный</label>
+        </div>
+        <div class="flex items-center">
+          <input type="checkbox" id="somatic" v-model="newSpell.somatic" class="mr-2">
+          <label for="somatic">Соматический</label>
+        </div>
+        <div class="flex items-center">
+          <input type="checkbox" id="material" v-model="newSpell.material" class="mr-2">
+          <label for="material">Материальный</label>
+        </div>
+      </div>
+      
+      <InputField 
+        v-if="newSpell.material"
+        v-model="newSpell.material_description" 
+        label="Материальный компонент" 
+        class="mt-4"
+      />
+      
+      <textarea
+        v-model="newSpell.description"
+        class="w-full h-32 p-2 bg-gray-700 rounded mt-4"
+        placeholder="Описание заклинания..."
+      ></textarea>
+      
+      <div class="flex justify-end gap-2 mt-4">
+        <button 
+          @click="cancelSpellEdit"
+          class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded"
+        >
+          Отмена
+        </button>
+        <button 
+          @click="createSpell"
+          class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded"
+        >
+          Создать заклинание
+        </button>
+      </div>
+    </div>
+
+    <!-- Форма редактирования заклинания -->
+    <div v-if="isEditingSpell" class="mb-6 p-4 bg-gray-700/50 rounded-lg">
+      <h3 class="text-lg font-bold mb-3">Редактирование заклинания</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <InputField v-model="editingSpell.name" label="Название" />
+        <div>
+          <label class="block mb-1">Школа</label>
+          <select v-model="editingSpell.school" class="w-full p-2 bg-gray-700 rounded">
+            <option v-for="school in spellSchools" :key="school" :value="school">{{ school }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block mb-1">Уровень</label>
+          <select v-model="editingSpell.level" class="w-full p-2 bg-gray-700 rounded">
+            <option v-for="level in spellLevels" :key="level" :value="level">{{ level }}</option>
+          </select>
+        </div>
+        <InputField v-model="editingSpell.casting_time" label="Время накладывания" />
+        <InputField v-model="editingSpell.distance" label="Дистанция" />
+        <InputField v-model="editingSpell.duration" label="Длительность" />
+      </div>
+      
+      <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="flex items-center">
+          <input type="checkbox" id="edit-verbal" v-model="editingSpell.verbal" class="mr-2">
+          <label for="edit-verbal">Вербальный</label>
+        </div>
+        <div class="flex items-center">
+          <input type="checkbox" id="edit-somatic" v-model="editingSpell.somatic" class="mr-2">
+          <label for="edit-somatic">Соматический</label>
+        </div>
+        <div class="flex items-center">
+          <input type="checkbox" id="edit-material" v-model="editingSpell.material" class="mr-2">
+          <label for="edit-material">Материальный</label>
+        </div>
+      </div>
+      
+      <InputField 
+        v-if="editingSpell.material"
+        v-model="editingSpell.material_description" 
+        label="Материальный компонент" 
+        class="mt-4"
+      />
+      
+      <textarea
+        v-model="editingSpell.description"
+        class="w-full h-32 p-2 bg-gray-700 rounded mt-4"
+        placeholder="Описание заклинания..."
+      ></textarea>
+      
+      <div class="flex justify-end gap-2 mt-4">
+        <button 
+          @click="cancelSpellEdit"
+          class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded"
+        >
+          Отмена
+        </button>
+        <button 
+          @click="updateSpell"
+          class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded"
+        >
+          Сохранить изменения
+        </button>
+      </div>
+    </div>
+
+    <!-- Просмотр информации о заклинании -->
+    <Modal v-if="isViewingSpell" :show="isViewingSpell" @close="cancelSpellEdit">
+      <div class="bg-gray-800 p-6 rounded-xl max-w-2xl w-full">
+        <div class="flex justify-between items-start mb-4">
+          <h3 class="text-2xl font-bold">{{ selectedSpell.name }}</h3>
+          <div class="flex gap-2">
+            <IconButton @click="startEditingSpell(selectedSpell)" title="Редактировать">
+              <Pen class="w-4 h-4"/>
+            </IconButton>
+            <IconButton @click="deleteSpell(selectedSpell.id)" title="Удалить">
+              <Trash class="w-4 h-4"/>
+            </IconButton>
+            <IconButton @click="cancelSpellEdit" title="Закрыть">
+              <X class="w-4 h-4"/>
+            </IconButton>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <p class="text-gray-400 mb-1">Школа</p>
+            <p class="text-lg">{{ selectedSpell.school }}</p>
+          </div>
+          <div>
+            <p class="text-gray-400 mb-1">Уровень</p>
+            <p class="text-lg">{{ selectedSpell.level === 'Природные силы' ? 'Заговор' : selectedSpell.level + ' уровень' }}</p>
+          </div>
+          <div>
+            <p class="text-gray-400 mb-1">Время накладывания</p>
+            <p class="text-lg">{{ selectedSpell.casting_time }}</p>
+          </div>
+          <div>
+            <p class="text-gray-400 mb-1">Дистанция</p>
+            <p class="text-lg">{{ selectedSpell.distance }}</p>
+          </div>
+          <div>
+            <p class="text-gray-400 mb-1">Длительность</p>
+            <p class="text-lg">{{ selectedSpell.duration }}</p>
+          </div>
+          <div>
+            <p class="text-gray-400 mb-1">Компоненты</p>
+            <p class="text-lg">
+              <span v-if="selectedSpell.verbal">Вербальный</span>
+              <span v-if="selectedSpell.verbal && selectedSpell.somatic">, </span>
+              <span v-if="selectedSpell.somatic">Соматический</span>
+              <span v-if="(selectedSpell.verbal || selectedSpell.somatic) && selectedSpell.material">, </span>
+              <span v-if="selectedSpell.material">Материальный ({{ selectedSpell.material_description }})</span>
+              <span v-if="!selectedSpell.verbal && !selectedSpell.somatic && !selectedSpell.material">-</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <p class="text-gray-400 mb-1">Описание</p>
+          <div class="prose prose-invert max-w-none whitespace-pre-line">
+            {{ selectedSpell.description }}
+          </div>
+        </div>
+      </div>
+    </Modal>
+
+    <!-- Список заклинаний, сгруппированных по уровням -->
+    <div class="space-y-6">
+      <div v-for="level in spellLevels" :key="level">
+        <div v-if="spells.filter(s => s.level === level).length > 0" class="mb-6">
+          <h3 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">
+            Заклинания {{ level === 'Природные силы' ? level : `${level} уровня` }}
+          </h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div 
+              v-for="spell in spells.filter(s => s.level === level).sort((a, b) => a.name.localeCompare(b.name))" 
+              :key="spell.id"
+              @click="viewSpell(spell)"
+              class="bg-gray-700/30 p-4 rounded-lg cursor-pointer hover:bg-gray-700/50 transition-colors"
+            >
+              <div class="flex justify-between items-start">
+                <h4 class="text-lg font-bold">{{ spell.name }}</h4>
+                <span class="text-sm bg-gray-600 px-2 py-1 rounded">
+                  {{ spell.level === 'Природные силы' ? 'Заговор' : `${spell.level} ур.` }}
+                </span>
+              </div>
+              
+              <div class="flex gap-2 mt-2 text-sm">
+                <span v-if="spell.verbal" class="bg-blue-600/30 px-2 rounded">В</span>
+                <span v-if="spell.somatic" class="bg-green-600/30 px-2 rounded">С</span>
+                <span v-if="spell.material" class="bg-amber-600/30 px-2 rounded">М</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
         <!-- Вкладка подкласса -->
 <div v-else-if="activeTab.startsWith('subclass-')">
@@ -901,7 +1272,7 @@ onMounted(fetchData);
                     </div>
                   </template>
                   <template v-else>
-                    {{ level[column.key] || '—' }}
+                    {{ level[column.key] || '-' }}
                   </template>
                 </td>
               </tr>
