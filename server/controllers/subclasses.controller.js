@@ -2,7 +2,7 @@ import pool from '../config/db.js';
 
 export const getSubclasses = async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM subclasses');
+    const { rows } = await pool.query('SELECT * FROM subclasses ORDER BY id');
     res.json(rows);
   } catch (err) {
     console.error(err);

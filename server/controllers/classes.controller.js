@@ -88,3 +88,24 @@ export const deleteClass = async (req, res) => {
     res.status(500).json({ error: 'Ошибка при удалении класса' });
   }
 };
+
+export const getClassSubclasses = async (req, res) => {
+  const { classId } = req.params;
+  console.log(`Fetching subclasses for class ID: ${classId}`); // Логируем
+  
+  try {
+    const queryText = 'SELECT * FROM subclasses WHERE class_id = $1 ORDER BY id';
+    const queryValues = [classId];
+    console.log('Executing query:', queryText, 'with values:', queryValues);
+    const { rows } = await pool.query(queryText, queryValues);
+    console.log('Query result:', rows); 
+    if (rows.length === 0) {
+      console.warn(`No subclasses found for class ID: ${classId}`);
+    }
+    
+    res.json(rows);
+  } catch (err) {
+    console.error('Database error:', err);
+    res.status(500).json({ error: 'Database query failed' });
+  }
+};

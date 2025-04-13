@@ -4,7 +4,8 @@ import {
   getClassById,
   createClass,
   updateClass,
-  deleteClass
+  deleteClass,
+  getClassSubclasses 
 } from '../controllers/classes.controller.js';
 
 const router = express.Router();
