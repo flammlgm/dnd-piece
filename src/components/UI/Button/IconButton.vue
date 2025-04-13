@@ -27,9 +27,7 @@ const disabledClasses = computed(() =>
 
 <template>
   <button
-      class="rounded-lg text-gray-600 dark:text-gray-300
-           hover:bg-blue-200 dark:hover:bg-blue-900/30
-           hover:text-blue-700 dark:hover:text-blue-400
+      class="rounded-lg bg-gray-800 border border-gray-600 hover:border-blue-600
            inline-flex items-center justify-center
     [transform-origin:center] will-change-transform
     [backface-visibility:hidden]
