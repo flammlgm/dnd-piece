@@ -31,7 +31,8 @@
     "vue": "^3.5.13",
     "vue-i18n": "^11.0.1",
     "vue-router": "^4.5.0",
-    "vue-visjs": "^0.6.0"
+    "vue-visjs": "^0.6.0",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.10",

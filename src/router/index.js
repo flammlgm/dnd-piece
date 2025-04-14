@@ -3,6 +3,7 @@ import Home from "@/views/Home.vue";
 import Classes from "@/views/Classes/Classes.vue";
 import ClassView from "@/views/Classes/ClassView.vue";
 import Races from "@/views/Races/Races.vue";
+import RaceView from "@/views/Races/RaceView.vue";
 import World from "@/views/World/World.vue";
 import Roles from "@/views/Roles/Roles.vue";
 import WorldMap from "@/views/WorldMap/WorldMap.vue";
@@ -29,6 +30,11 @@ const routes = [
 
   },
   { 
+    path: '/races/:id', 
+    component: RaceView 
+
+  }, 
+  { 
     path: "/world", 
     component: World,
     name: "world" 
@@ -40,6 +46,11 @@ const routes = [
     name: "roles" 
 
   },
+  { 
+    path: '/roles/:id', 
+    component: RaceView 
+
+  }, 
   { 
     path: "/map", 
     component: WorldMap,
