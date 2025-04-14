@@ -6,7 +6,11 @@ import Races from "@/views/Races/Races.vue";
 import RaceView from "@/views/Races/RaceView.vue";
 import World from "@/views/World/World.vue";
 import Roles from "@/views/Roles/Roles.vue";
+import RoleView from "@/views/Roles/RoleView.vue";
 import WorldMap from "@/views/WorldMap/WorldMap.vue";
+// import { isAuthenticated } from '@/utils/auth';
+
+
 
 const routes = [
   { 
@@ -14,6 +18,10 @@ const routes = [
     component: Home,
     name: "home" 
   },
+  // { 
+  //   path: "/admin", 
+  //   component: AdminView,
+  // },
   { 
     path: '/classes', 
     component: Classes 
@@ -48,7 +56,7 @@ const routes = [
   },
   { 
     path: '/roles/:id', 
-    component: RaceView 
+    component: RoleView 
 
   }, 
   { 
@@ -64,4 +72,9 @@ const router = createRouter({
   routes,
 });
 
+// router.beforeEach((to) => {
+//   if (to.meta.requiresAuth && !isAuthenticated()) {
+//     return { path: '/' };
+//   }
+// });
 export default router;

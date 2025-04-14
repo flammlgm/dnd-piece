@@ -22,7 +22,7 @@ const pages = [
     path: "/classes",
   },
   {
-    image: "/image/Roles/Плотник.jpg",
+    image: "/image/Roles/Shipwright.jpg",
     text: "Роли",
     objectPosition: "50% 20%",
     path: "/roles",

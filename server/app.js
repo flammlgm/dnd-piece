@@ -2,12 +2,13 @@ import express from 'express';
 import cors from 'cors';
 import classesRouter from './routes/classes.routes.js';
 import racesRouter from './routes/races.routes.js';
+import rolesRouter from './routes/roles.routes.js';
 import subclassesRouter from './routes/subclasses.routes.js';
 import spellsRouter from './routes/spells.routes.js';
+// import authRouter from './routes/auth.routes.js';
 
 const app = express();
 
-// Middleware
 app.use(cors({
   origin: 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'DELETE']
@@ -15,14 +16,13 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
 app.use('/api/classes', classesRouter);
 app.use('/api/races', racesRouter);
+app.use('/api/roles', rolesRouter);
 app.use('/api/subclasses', subclassesRouter);
 app.use('/api/spells', spellsRouter);
-// Добавьте остальные маршруты
+// app.use('/api/auth', authRouter);
 
-// Обработка OPTIONS для CORS
 app.options('*', (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
   res.status(204).end();
