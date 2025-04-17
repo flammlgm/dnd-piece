@@ -5,7 +5,7 @@ import racesRouter from './routes/races.routes.js';
 import rolesRouter from './routes/roles.routes.js';
 import subclassesRouter from './routes/subclasses.routes.js';
 import spellsRouter from './routes/spells.routes.js';
-// import authRouter from './routes/auth.routes.js';
+import authRouter from './routes/auth.routes.js';
 
 const app = express();
 
@@ -21,7 +21,7 @@ app.use('/api/races', racesRouter);
 app.use('/api/roles', rolesRouter);
 app.use('/api/subclasses', subclassesRouter);
 app.use('/api/spells', spellsRouter);
-// app.use('/api/auth', authRouter);
+app.use('/api/auth', authRouter);
 
 app.options('*', (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');

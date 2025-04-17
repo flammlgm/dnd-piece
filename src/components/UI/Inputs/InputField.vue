@@ -4,7 +4,7 @@ import IMask from 'imask';
 const props = defineProps({
   modelValue:[String, Number],
   type: {
-    type: [String, Number],
+    type: String,
     default: 'text',
   },
   placeholder: {
@@ -28,7 +28,7 @@ const props = defineProps({
     default: '',
   },
   mask: {
-    type: [String, Object], // Поддержка строки или объекта для маски
+    type: [String, Object], 
     default: null,
   },
   disabled: {
@@ -84,9 +84,9 @@ onMounted(() => {
         :name="type"
         :autocomplete="autocomplete"
         :disabled="disabled"
-        class="block w-full pl-12 pr-4 py-3 rounded-xl transition-all duration-300 outline-none
-                  bg-gray-800 focus:bg-gray-900
-                  focus:outline-none focus:ring-4 ffocus:border-transparent"
+        class="block w-full pl-12 pr-4 py-3 rounded-xl transition-all duration-300
+                    bg-gray-800 focus:bg-gray-900
+                      focus:outline-none focus:ring-4 focus:border-transparent"
       
 
     />

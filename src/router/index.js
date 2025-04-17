@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Home from "@/views/Home.vue";
+import Login from '@/views/Login.vue';
+import Register from '@/views/Register.vue';
 import Classes from "@/views/Classes/Classes.vue";
 import ClassView from "@/views/Classes/ClassView.vue";
 import Races from "@/views/Races/Races.vue";
@@ -13,56 +15,74 @@ import WorldMap from "@/views/WorldMap/WorldMap.vue";
 
 
 const routes = [
-  { 
-    path: "/", 
+    {
+    path: '/',
+    name: 'Home',
     component: Home,
-    name: "home" 
+    meta: { requiresAuth: true }
   },
-  // { 
-  //   path: "/admin", 
-  //   component: AdminView,
-  // },
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login,
+    meta: { requiresGuest: true }
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: Register,
+    meta: { requiresGuest: true }
+  },
   { 
     path: '/classes', 
-    component: Classes 
+    component: Classes ,
+    meta: { requiresAuth: true }
+
   },
   { 
     path: '/classes/:id', 
-    component: ClassView 
+    component: ClassView  ,
+    meta: { requiresAuth: true }
 
   }, 
   { 
     path: "/races", 
     component: Races,
-    name: "races" 
+    name: "races"  ,
+    meta: { requiresAuth: true }
 
   },
   { 
     path: '/races/:id', 
-    component: RaceView 
+    component: RaceView  ,
+    meta: { requiresAuth: true }
 
   }, 
   { 
     path: "/world", 
     component: World,
-    name: "world" 
+    name: "world"  ,
+    meta: { requiresAuth: true }
 
   },
   { 
     path: "/roles", 
     component: Roles,
-    name: "roles" 
+    name: "roles"  ,
+    meta: { requiresAuth: true }
 
   },
   { 
     path: '/roles/:id', 
-    component: RoleView 
+    component: RoleView  ,
+    meta: { requiresAuth: true }
 
   }, 
   { 
     path: "/map", 
     component: WorldMap,
-    name: "map"
+    name: "map" ,
+    meta: { requiresAuth: true }
 
   },
 ];
@@ -72,9 +92,4 @@ const router = createRouter({
   routes,
 });
 
-// router.beforeEach((to) => {
-//   if (to.meta.requiresAuth && !isAuthenticated()) {
-//     return { path: '/' };
-//   }
-// });
 export default router;

@@ -175,7 +175,7 @@ onMounted(() => {
     <!-- Режим просмотра -->
     <div v-else class="flex flex-col lg:flex-row gap-6 items-start">
       <!-- Боковая панель с изображением -->
-      <div class="w-full lg:w-1/3 flex-shrink-0">
+      <div class="w-full lg:w-1/3 flex-shrink-0 pl-20">
         <img 
           v-if="currentClass.image_path" 
           :src="currentClass.image_path" 
