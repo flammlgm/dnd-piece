@@ -7,6 +7,7 @@ import IconButton from '@/components/UI/Button/IconButton.vue';
 import InputField from '@/components/UI/Inputs/InputField.vue';
 import { Pen, Trash, Save, X, ALargeSmall, Rabbit, Fish, Hourglass, Ruler, Weight, CirclePlus, GraduationCap, Plus } from 'lucide-vue-next';
 import draggable from 'vuedraggable';
+import VisibilityToggle from '@/components/VisibilityToggle.vue'
 
 const route = useRoute();
 const router = useRouter();

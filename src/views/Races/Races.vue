@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import ImageButton from '@/components/UI/Button/ImageButton.vue'
+import VisibilityToggle from '@/components/VisibilityToggle.vue'
 const router = useRouter();
 const races = ref([]);
 
@@ -32,14 +33,19 @@ onMounted(fetchRaces);
     <h1 class="text-white font-bold text-5xl m-10">Расы</h1>
     <div class="container mx-auto p-4">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <ImageButton 
-        v-for="race in races"
-        :key="race.id"
-        :image="race.image_path"
-        :text="race.name"
-        :objectPosition="race.image_position"
-        @click="goToRace(race.id)"
-      />
+      <VisibilityToggle
+          v-for="race in races"
+          :key="race.id"
+          :content-id="`race-${race.id}`"
+          content-type="race"
+        >
+          <ImageButton 
+            :image="race.image_path"
+            :text="race.name"
+            :objectPosition="race.image_position"
+            @click="goToRace(race.id)"
+          />
+        </VisibilityToggle>
     </div>
   </div>
   </div>
