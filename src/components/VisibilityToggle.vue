@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import axios from 'axios';
+import {Eye} from 'lucide-vue-next'
 
 const props = defineProps({
   contentId: {
@@ -78,7 +79,7 @@ const updateVisibilitySettings = async () => {
 const isVisible = computed(() => {
   if (!authStore.user) return false;
   if (authStore.user.role === 'master') return true;
-  return !hiddenForUsers.value.includes(authStore.user.id);
+  return hiddenForUsers.value.includes(authStore.user.id);
 });
 
 // Переключаем видимость для конкретного игрока
@@ -98,42 +99,22 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="relative">
-    <!-- Кнопка управления (только для мастера) -->
+  <div v-if="isVisible" class="relative">   
     <button
       v-if="isMaster"
       @click="showDropdown = !showDropdown"
-      class="absolute top-0 right-0 z-10 p-1 bg-gray-800 rounded-full text-white hover:bg-gray-700 transition-colors"
+      class="absolute top-0 right-0 z-10 p-1 mr-3 mt-2 bg-gray-800 rounded-full text-white hover:bg-gray-700 transition-colors"
       title="Управление видимостью"
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-5 w-5"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-        />
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-        />
-      </svg>
+      <Eye class="w-5 h-5 hover:text-blue-700"/>
     </button>
 
-    <!-- Выпадающее меню с выбором игроков -->
+    <!-- Унифицированное выпадающее меню -->
     <div
       v-if="showDropdown && isMaster"
-      class="absolute top-8 right-0 z-20 bg-white rounded-md shadow-lg p-4 w-64"
+      class="absolute top-10 right-0 z-20 bg-gray-800 border border-gray-600 p-4 rounded-lg shadow-xl"
     >
-      <h3 class="font-bold mb-2">Видимость для игроков:</h3>
+      <h3 class="font-bold mb-2 text-white">Кому виден этот блок:</h3>
       <div class="space-y-2 max-h-60 overflow-y-auto">
         <div
           v-for="player in allPlayers"
@@ -145,23 +126,35 @@ onMounted(async () => {
             type="checkbox"
             :checked="hiddenForUsers.includes(player.id)"
             @change="togglePlayerVisibility(player.id)"
-            class="mr-2"
+            class="w-4 h-4 rounded border-gray-300 text-blue-700 focus:ring-blue-600"
           />
-          <label :for="`player-${player.id}`">{{ player.username }}</label>
+          <label :for="`player-${player.id}`" class="ml-2 text-white">
+            {{ player.username }}
+          </label>
         </div>
       </div>
       <button
         @click="updateVisibilitySettings"
         :disabled="isLoading"
-        class="mt-3 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+        class="mt-3 px-3 py-1 rounded-lg font-medium transition-colors bg-gray-800 border-2 w-full text-white border-gray-600 hover:border-blue-600"
       >
         {{ isLoading ? 'Сохранение...' : 'Сохранить' }}
       </button>
     </div>
 
-    <!-- Слот с контентом, который будет скрыт/показан -->
-    <div v-if="isVisible">
-      <slot />
-    </div>
+    <slot />
   </div>
 </template>
+
+<style scoped>
+/* Добавим плавную анимацию для меню */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: opacity 0.2s, transform 0.2s;
+}
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+</style>

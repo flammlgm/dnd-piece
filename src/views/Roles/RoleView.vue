@@ -1,15 +1,18 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
 import axios from 'axios';
 import Spinner from '@/components/UI/Spinner.vue';
 import IconButton from '@/components/UI/Button/IconButton.vue';
 import InputField from '@/components/UI/Inputs/InputField.vue';
+import VisibilityToggle from '@/components/VisibilityToggle.vue';
 import { Pen, Trash, Save, X, ALargeSmall, Plus } from 'lucide-vue-next';
 import draggable from 'vuedraggable';
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 const roleId = parseInt(route.params.id);
 
 const currentRole = ref(null);
@@ -108,8 +111,6 @@ const saveRole = async () => {
         order: idx
       }))
     }));
-
-    console.log('Отправляемые данные:', dataToSend);
 
     const { data } = await axios.put(
       `http://localhost:5000/api/roles/${roleId}`,
@@ -232,59 +233,69 @@ onMounted(() => {
     <div v-else class="flex flex-col lg:flex-row gap-6 items-start">
       <!-- Боковая панель с изображением -->
       <div class="w-full lg:w-1/3 flex-shrink-0">
-        <img 
-          v-if="currentRole.image_path" 
-          :src="currentRole.image_path" 
-          alt="Изображение роли" 
-          class="rounded-2xl w-full h-auto object-cover"
-        />
+
+          <img 
+            v-if="currentRole.image_path" 
+            :src="currentRole.image_path" 
+            alt="Изображение роли" 
+            class="rounded-2xl w-full h-auto object-cover"
+          />
       </div>
       
       <!-- Основной контент -->
       <div class="flex-1 bg-gray-800 rounded-2xl p-6 lg:p-10 w-full">
         <!-- Заголовок и кнопки -->
         <div class="flex justify-between items-start mb-6">
-          <h1 class="text-4xl font-bold">{{ currentRole.name }}</h1>
-          <div class="flex gap-2">
+
+            <h1 class="text-4xl font-bold">{{ currentRole.name }}</h1>
+          
+          <div v-if="authStore.user?.role === 'master'" class="flex gap-2">
             <IconButton @click="editRole" title="Изменить роль">
               <Pen class="w-4 h-4"/>
             </IconButton>
-            <IconButton @click="deleteRole" title="Удалить роль">
+            <!-- <IconButton @click="deleteRole" title="Удалить роль">
               <Trash class="w-4 h-4"/>
-            </IconButton>
+            </IconButton> -->
           </div>
         </div>
 
         <!-- Описание -->
-        <div class="mb-8">
-          <h3 class="text-2xl font-bold mb-4">Описание</h3>
-          <div class="prose prose-invert max-w-none whitespace-pre-line">
-            {{ currentRole.description }}
+        <VisibilityToggle
+          :content-id="`role-${currentRole.id}-description`"
+          content-type="role-description"
+        >
+          <div class="mb-8">
+            <h3 class="text-2xl font-bold mb-4">Описание</h3>
+            <div class="prose prose-invert max-w-none whitespace-pre-line">
+              {{ currentRole.description }}
+            </div>
           </div>
-        </div>
+        </VisibilityToggle>
 
         <!-- Особенности -->
-        <div v-if="currentRole.features && (Array.isArray(currentRole.features) ? currentRole.features.length : Object.keys(currentRole.features).length)" class="mb-8">
-          <h3 class="text-2xl font-bold mb-4">Особенности</h3>
-          <div class="space-y-4">
-            <template v-if="Array.isArray(currentRole.features)">
-              <div v-for="(feature, index) in currentRole.features" :key="index" class="bg-gray-700 p-4 rounded-lg">
-                <h4 class="text-xl font-semibold mb-2">{{ feature.name }}</h4>
-                <div class="prose prose-invert max-w-none whitespace-pre-line">
-                  {{ feature.description }}
+        <VisibilityToggle
+          :content-id="`role-${currentRole.id}-features`"
+          content-type="role-features"
+        >
+          <div v-if="currentRole.features && currentRole.features.length" class="mb-8">
+            <h3 class="text-2xl font-bold mb-4">Особенности</h3>
+            <div class="space-y-4">
+              <VisibilityToggle
+                v-for="(feature, index) in currentRole.features"
+                :key="index"
+                :content-id="`role-${currentRole.id}-feature-${index}`"
+                content-type="role-feature"
+              >
+                <div class="bg-gray-700 p-4 rounded-lg">
+                  <h4 class="text-xl font-semibold mb-2">{{ feature.name }}</h4>
+                  <div class="prose prose-invert max-w-none whitespace-pre-line">
+                    {{ feature.description }}
+                  </div>
                 </div>
-              </div>
-            </template>
-            <template v-else>
-              <div v-for="(description, name) in currentRole.features" :key="name" class="bg-gray-700 p-4 rounded-lg">
-                <h4 class="text-xl font-semibold mb-2">{{ name }}</h4>
-                <div class="prose prose-invert max-w-none whitespace-pre-line">
-                  {{ description }}
-                </div>
-              </div>
-            </template>
+              </VisibilityToggle>
+            </div>
           </div>
-        </div>
+        </VisibilityToggle>
       </div>
     </div>
   </div>

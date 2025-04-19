@@ -28,7 +28,7 @@ const authStore = useAuthStore();
               <div class="ml-3 relative">
                 
                 <div class="flex items-center">
-                  <nav class="mr-4 space-x-2 font-bold font-mono">
+                  <!-- <nav class="mr-4 space-x-2 font-bold font-mono">
                     <button 
                       @click="navigate('/')" 
                       class="text-white hover:text-gray-300 transition-colors py-2 px-4 rounded-lg hover:bg-gray-700 focus:outline-none">
@@ -54,12 +54,13 @@ const authStore = useAuthStore();
                       class="text-white hover:text-gray-300 transition-colors py-2 px-4 rounded-lg hover:bg-gray-700 focus:outline-none">
                       Роли
                     </button>
-                  </nav>
-                  <div class="pr-4 border-r border-gray-500">
+                  </nav> -->
+                  
+                  <User class="text-white mx-4 "/>  
+                  <span class=" mr-4 font-bold font-mono text-white">{{ authStore.user?.username }}</span>
+                  <div class="pl-4 border-l border-gray-500">
                     <Button @click="authStore.logout" text="Выйти" type="danger" size="medium" class="font-bold font-mono"/>
                   </div>
-                  <User class="text-white mr-4 ml-4"/>  
-                  <span class=" font-bold font-mono text-white">{{ authStore.user?.username }}</span>
                 </div>
               </div>
             </div>

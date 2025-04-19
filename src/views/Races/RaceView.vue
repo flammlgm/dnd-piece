@@ -8,7 +8,9 @@ import InputField from '@/components/UI/Inputs/InputField.vue';
 import { Pen, Trash, Save, X, ALargeSmall, Rabbit, Fish, Hourglass, Ruler, Weight, CirclePlus, GraduationCap, Plus } from 'lucide-vue-next';
 import draggable from 'vuedraggable';
 import VisibilityToggle from '@/components/VisibilityToggle.vue'
+import {useAuthStore} from '@/stores/auth.js'
 
+const authStore = useAuthStore()
 const route = useRoute();
 const router = useRouter();
 const raceId = parseInt(route.params.id);
@@ -331,13 +333,13 @@ onMounted(() => {
         <!-- Заголовок и кнопки -->
         <div class="flex justify-between items-start mb-6">
           <h1 class="text-4xl font-bold">{{ currentRace.name }}</h1>
-          <div class="flex gap-2">
+          <div class="flex gap-2" v-if="authStore.user?.role === 'master'">
             <IconButton @click="editRace" title="Изменить расу">
               <Pen class="w-4 h-4"/>
             </IconButton>
-            <IconButton @click="deleteRace" title="Удалить расу">
+            <!-- <IconButton @click="deleteRace" title="Удалить расу">
               <Trash class="w-4 h-4"/>
-            </IconButton>
+            </IconButton> -->
           </div>
         </div>
 
@@ -377,34 +379,43 @@ onMounted(() => {
 
         <!-- Описание -->
         <div class="mb-8">
-          <h3 class="text-2xl font-bold mb-4">Описание</h3>
-          <div class="prose prose-invert max-w-none whitespace-pre-line">
-            {{ currentRace.description }}
-          </div>
+          <VisibilityToggle
+            :content-id="`race-${currentRace.id}-description`"
+            content-type="race-description"
+          >
+            <h3 class="text-2xl font-bold mb-4">Описание</h3>
+            <div class="prose prose-invert max-w-none whitespace-pre-line">
+              {{ currentRace.description }}
+            </div>
+          </VisibilityToggle>
         </div>
 
         <!-- Особенности -->
-        <div v-if="currentRace.features && (Array.isArray(currentRace.features) ? currentRace.features.length : Object.keys(currentRace.features).length)" class="mb-8">
-          <h3 class="text-2xl font-bold mb-4">Особенности</h3>
-          <div class="space-y-4">
-            <template v-if="Array.isArray(currentRace.features)">
-              <div v-for="(feature, index) in currentRace.features" :key="index" class="bg-gray-700 p-4 rounded-lg">
-                <h4 class="text-xl font-semibold mb-2">{{ feature.name }}</h4>
-                <div class="prose prose-invert max-w-none whitespace-pre-line">
-                  {{ feature.description }}
-                </div>
-              </div>
-            </template>
-            <template v-else>
-              <div v-for="(description, name) in currentRace.features" :key="name" class="bg-gray-700 p-4 rounded-lg">
-                <h4 class="text-xl font-semibold mb-2">{{ name }}</h4>
-                <div class="prose prose-invert max-w-none whitespace-pre-line">
-                  {{ description }}
-                </div>
-              </div>
-            </template>
+        <VisibilityToggle
+  :content-id="`race-${currentRace.id}-features`"
+  content-type="race-features"
+>
+  <div v-if="currentRace.features && currentRace.features.length" class="mb-8">
+    <h3 class="text-2xl font-bold mb-4">Особенности</h3>
+    <div class="space-y-4">
+      <div 
+        v-for="(feature, index) in currentRace.features" 
+        :key="index" 
+        class="bg-gray-700 p-4 rounded-lg"
+      >
+        <VisibilityToggle
+          :content-id="`race-${currentRace.id}-feature-${index}`"
+          content-type="race-feature"
+        >
+          <h4 class="text-xl font-semibold mb-2">{{ feature.name }}</h4>
+          <div class="prose prose-invert max-w-none whitespace-pre-line">
+            {{ feature.description }}
           </div>
-        </div>
+        </VisibilityToggle>
+      </div>
+    </div>
+  </div>
+</VisibilityToggle>
       </div>
     </div>
   </div>

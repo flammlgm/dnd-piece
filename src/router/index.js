@@ -7,6 +7,7 @@ import ClassView from "@/views/Classes/ClassView.vue";
 import Races from "@/views/Races/Races.vue";
 import RaceView from "@/views/Races/RaceView.vue";
 import World from "@/views/World/World.vue";
+import Fruits from "@/views/Fruits/Fruits.vue";
 import Roles from "@/views/Roles/Roles.vue";
 import RoleView from "@/views/Roles/RoleView.vue";
 import WorldMap from "@/views/WorldMap/WorldMap.vue";
@@ -79,9 +80,9 @@ const routes = [
 
   }, 
   { 
-    path: "/map", 
-    component: WorldMap,
-    name: "map" ,
+    path: "/fruits", 
+    component: Fruits,
+    name: "fruits" ,
     meta: { requiresAuth: true }
 
   },

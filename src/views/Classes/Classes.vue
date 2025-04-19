@@ -3,6 +3,8 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import ImageButton from '@/components/UI/Button/ImageButton.vue'
+import VisibilityToggle from '@/components/VisibilityToggle.vue'
+
 const router = useRouter();
 const classes = ref([]);
 
@@ -32,14 +34,20 @@ onMounted(fetchClasses);
     <h1 class="text-white font-bold text-5xl m-10">Классы</h1>
     <div class="container mx-auto p-4">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <ImageButton 
-        v-for="cls in classes"
-        :key="cls.id"
-        :image="cls.image_path"
-        :text="cls.name"
-        :objectPosition="cls.image_position"
-        @click="goToClass(cls.id)"
-      />
+      <VisibilityToggle
+          v-for="clss in classes"
+          :key="clss.id"
+          :content-id="`clss-${clss.id}`"
+          content-type="clss"
+        >
+          <ImageButton 
+            :image="clss.image_path"
+            :text="clss.name"
+            :objectPosition="clss.image_position"
+            @click="goToClass(clss.id)"
+            class="h-full"
+          />
+        </VisibilityToggle>
     </div>
   </div>
   </div>
