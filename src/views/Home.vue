@@ -51,6 +51,13 @@ const pages = ref([
     objectPosition: "",
     path: "/devil-fruits",
   },
+  {
+    id: 'home-users',
+    image: "/image/Users.jpg",
+    text: "Игроки",
+    objectPosition: "",
+    path: "/users",
+  },
 ]);
 
 const navigate = (path) => {

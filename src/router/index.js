@@ -11,7 +11,9 @@ import Roles from "@/views/Roles/Roles.vue";
 import RoleView from "@/views/Roles/RoleView.vue";
 import WorldMap from "@/views/WorldMap/WorldMap.vue";
 import DevilFruitsView from "@/views/Fruits/DevilFruitsView.vue";
-// import { isAuthenticated } from '@/utils/auth';
+import Users from '@/views/Users/Users.vue'
+import UserView from "@/views/Users/UserView/UserView.vue";
+import CharacterView from '@/views/Users/UserView/CharacterView/CharacterView.vue';
 
 
 
@@ -82,6 +84,25 @@ const routes = [
   { 
     path: '/roles/:id', 
     component: RoleView  ,
+    meta: { requiresAuth: true }
+
+  }, 
+  { 
+    path: "/users", 
+    component: Users,
+    name: "users"  ,
+    meta: { requiresAuth: true }
+
+  },
+  { 
+    path: '/users/:id', 
+    component: UserView  ,
+    meta: { requiresAuth: true }
+
+  }, 
+  { 
+    path: '/characters/:id', 
+    component: CharacterView  ,
     meta: { requiresAuth: true }
 
   }, 

@@ -30,7 +30,7 @@ const handleLogin = async () => {
 };
 </script>
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-900">
+  <div class="min-h-screen flex items-center justify-center bg-gray-900 font-mono">
     <div class="bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-md">
       <h1 class="text-3xl font-bold font-mono mb-6 text-center text-white">Login</h1>
       <form @submit.prevent="handleLogin" class="space-y-4">
@@ -68,12 +68,12 @@ const handleLogin = async () => {
           <span v-else>Loading...</span>
         </button>
       </form>
-      <div class="mt-4 text-center">
+      <!-- <div class="mt-4 text-center">
         <p class="text-sm text-gray-600">
           Don't have an account?
           <router-link to="/register" class="text-indigo-600 hover:text-indigo-500">Register</router-link>
         </p>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
