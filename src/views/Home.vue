@@ -47,9 +47,9 @@ const pages = ref([
   {
     id: 'home-fruits',
     image: "/image/DevilFruit.jpg",
-    text: "Дяьвольские фрукты",
+    text: "Дьявольские фрукты",
     objectPosition: "",
-    path: "/fruits",
+    path: "/devil-fruits",
   },
 ]);
 

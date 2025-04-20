@@ -6,7 +6,7 @@ import rolesRouter from './routes/roles.routes.js';
 import subclassesRouter from './routes/subclasses.routes.js';
 import spellsRouter from './routes/spells.routes.js';
 import authRouter from './routes/auth.routes.js';
-
+import devilFruitsRouter from './routes/devilFruits.routes.js';
 import visibilityRouter from './routes/visibility.routes.js';
 import usersRouter from './routes/users.routes.js';
 
@@ -25,7 +25,7 @@ app.use('/api/roles', rolesRouter);
 app.use('/api/subclasses', subclassesRouter);
 app.use('/api/spells', spellsRouter);
 app.use('/api/auth', authRouter);
-
+app.use('/api/devil-fruits', devilFruitsRouter);
 app.use('/api/visibility', visibilityRouter);
 app.use('/api/users', usersRouter);
 

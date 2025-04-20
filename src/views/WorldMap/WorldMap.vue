@@ -326,7 +326,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="p-4">
+  <div class="p-4 text-white font-mono">
     <div class="mb-4 flex flex-wrap gap-4 items-center">
       <button 
         @click="addNode"

@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import axios from 'axios';
-import {Eye} from 'lucide-vue-next'
+import {User} from 'lucide-vue-next'
 
 const props = defineProps({
   contentId: {
@@ -106,7 +106,7 @@ onMounted(async () => {
       class="absolute top-0 right-0 z-10 p-1 mr-3 mt-2 bg-gray-800 rounded-full text-white hover:bg-gray-700 transition-colors"
       title="Управление видимостью"
     >
-      <Eye class="w-5 h-5 hover:text-blue-700"/>
+      <User class="w-5 h-5 hover:text-blue-700"/>
     </button>
 
     <!-- Унифицированное выпадающее меню -->

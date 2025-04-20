@@ -7,10 +7,10 @@ import ClassView from "@/views/Classes/ClassView.vue";
 import Races from "@/views/Races/Races.vue";
 import RaceView from "@/views/Races/RaceView.vue";
 import World from "@/views/World/World.vue";
-import Fruits from "@/views/Fruits/Fruits.vue";
 import Roles from "@/views/Roles/Roles.vue";
 import RoleView from "@/views/Roles/RoleView.vue";
 import WorldMap from "@/views/WorldMap/WorldMap.vue";
+import DevilFruitsView from "@/views/Fruits/DevilFruitsView.vue";
 // import { isAuthenticated } from '@/utils/auth';
 
 
@@ -27,6 +27,12 @@ const routes = [
     name: 'Login',
     component: Login,
     meta: { requiresGuest: true }
+  },
+  {
+    path: '/map',
+    name: 'WorldMap',
+    component: WorldMap,
+    meta: { requiresGuest: false }
   },
   {
     path: '/register',
@@ -80,9 +86,9 @@ const routes = [
 
   }, 
   { 
-    path: "/fruits", 
-    component: Fruits,
-    name: "fruits" ,
+    path: "/devil-fruits", 
+    component: DevilFruitsView,
+    name: "devil-fruits" ,
     meta: { requiresAuth: true }
 
   },

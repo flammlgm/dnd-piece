@@ -163,7 +163,7 @@ onMounted(() => {
     <Spinner size="huge"/>
   </div>
 
-  <div v-else-if="currentClass" class="class-page bg-gray-900 text-white min-h-screen p-6">
+  <div v-else-if="currentClass" class="class-page bg-gray-900 text-white font-mono min-h-screen p-6">
     <!-- Режим редактирования -->
     <ClassEditForm 
       v-if="isEditing" 

@@ -157,7 +157,7 @@ onMounted(() => {
     <Spinner size="huge"/>
   </div>
 
-  <div v-else-if="currentRole" class="role-page bg-gray-900 text-white min-h-screen p-6">
+  <div v-else-if="currentRole" class="role-page bg-gray-900 text-white font-mono min-h-screen p-6">
     <!-- Режим редактирования -->
     <div v-if="isEditing" class="bg-gray-800 rounded-2xl p-6 mb-6">
       <div class="flex justify-between items-center mb-6">
