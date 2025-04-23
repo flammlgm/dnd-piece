@@ -37,14 +37,40 @@ export const createIsland = async (req, res) => {
 export const updateIsland = async (req, res) => {
   try {
     const { id } = req.params;
-    const updatedIsland = await IslandModel.updateIsland(id, req.body);
+    const updateData = req.body;
+    
+    // Добавим логирование для отладки
+    console.log('Updating island:', id, 'with data:', updateData);
+    
+    // Проверяем, что переданы только допустимые поля
+    const allowedFields = ['name', 'x', 'y', 'monster_chance', 'pirate_chance', 
+                         'patrol_chance', 'storm_chance', 'has_harbor'];
+    const filteredData = {};
+    
+    for (const key in updateData) {
+      if (allowedFields.includes(key)) {
+        filteredData[key] = updateData[key];
+      }
+    }
+    
+    const updatedIsland = await IslandModel.updateIsland(id, filteredData);
+    
     if (!updatedIsland) {
       return res.status(404).json({ error: 'Island not found' });
     }
+    
     res.json(updatedIsland);
   } catch (err) {
-    console.error('Error updating island:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error updating island:', {
+      message: err.message,
+      stack: err.stack,
+      body: req.body,
+      params: req.params
+    });
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 };
 
@@ -71,24 +97,22 @@ export const getIslandConnections = async (req, res) => {
 };
 
 export const getAllConnections = async (req, res) => {
-    try {
-      console.log('Fetching all connections...');
-      const connections = await IslandModel.getAllConnections();
-      console.log(`Found ${connections.length} connections`);
-      res.json(connections);
-    } catch (err) {
-      console.error('Error in getAllConnections:', {
-        message: err.message,
-        stack: err.stack,
-        query: err.query,
-        parameters: err.parameters
-      });
-      res.status(500).json({ 
-        error: 'Internal server error',
-        details: process.env.NODE_ENV === 'development' ? err.message : undefined
-      });
-    }
+  try {
+    const connections = await IslandModel.getAllConnections();
+    res.json(connections);
+  } catch (err) {
+    console.error('Error in getAllConnections:', {
+      message: err.message,
+      stack: err.stack,
+      ...(err.query && { query: err.query }),
+      ...(err.parameters && { parameters: err.parameters })
+    });
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
+}
 
 export const addConnection = async (req, res) => {
   try {
@@ -108,6 +132,30 @@ export const removeConnection = async (req, res) => {
     res.status(204).end();
   } catch (err) {
     console.error('Error deleting connection:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const updateConnection = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { distance } = req.body;
+    
+    const { rows } = await pool.query(
+      `UPDATE island_connections 
+       SET distance = $1, updated_at = NOW()
+       WHERE id = $2
+       RETURNING *`,
+      [distance, id]
+    );
+    
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Connection not found' });
+    }
+    
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('Error updating connection:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

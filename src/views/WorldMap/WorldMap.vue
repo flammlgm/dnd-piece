@@ -9,6 +9,7 @@ import FooterMap from './components/FooterMap.vue'
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
 
 // Реактивные данные
+const MAX_CONNECTION_DISTANCE = 300;
 const nodes = ref(new DataSet([]))
 const edges = ref(new DataSet([]))
 const network = ref(null)
@@ -83,7 +84,7 @@ const pathStats = computed(() => {
 const options = {
   nodes: {
     shape: 'dot',
-    size: 25,
+    size: 5,
     borderWidth: 3,
     color: {
       background: '#4C8BF5',
@@ -93,8 +94,12 @@ const options = {
         border: '#E08C1C'
       }
     },
+    fixed: {
+      x: false,
+      y: false
+    },  
     font: {
-      size: 14,
+      size: 10,
       color: '#FFFFFF',
       strokeWidth: 3,
       strokeColor: '#1A365D'
@@ -109,13 +114,29 @@ const options = {
     dashes: false
   },
   physics: {
-    enabled: false
+    enabled: false,
+    stabilization: {
+      fit: true,
+      iterations: 1000
+    }
   },
   interaction: {
     dragNodes: true,
+    dragView: true,
+    zoomView: true,
     multiselect: false,
     selectConnectedEdges: false
-  }
+  },
+  // Добавьте эти настройки:
+  layout: {
+    randomSeed: undefined,
+    improvedLayout: true
+  },
+  configure: {
+    enabled: false
+  },
+  width: '100%',
+  height: '100%'
 }
 
 // Загрузка данных
@@ -126,9 +147,13 @@ const loadData = async () => {
       axios.get(`${API_BASE_URL}/islands/connections`)
     ]);
 
-    nodes.value.clear();
-    nodes.value.add(islandsRes.data.map(island => ({
-      id: island.id,
+    nodes.value.add(islandsRes.data.map(island => {
+      // Проверяем и корректируем координаты
+      const x = Math.max(0, Math.min(1400, island.x || 0));
+      const y = Math.max(0, Math.min(900, island.y || 0));
+      
+      return {
+        id: island.id,
       label: island.name || `Остров ${island.id}`,
       x: island.x,
       y: island.y,
@@ -138,7 +163,8 @@ const loadData = async () => {
       storm_chance: island.storm_chance || 0,
       has_harbor: island.has_harbor || false,
       color: getNodeColor(island)
-    })));
+    };
+  }));
 
     edges.value.clear();
     edges.value.add(connectionsRes.data.map(conn => ({
@@ -324,10 +350,13 @@ const highlightPath = () => {
 // Работа с узлами
 const addNode = async () => {
   try {
+    const x = Math.floor(Math.random() * 1400);
+    const y = Math.floor(Math.random() * 900);
+    
     const response = await axios.post(`${API_BASE_URL}/islands`, {
       name: `Остров ${nodes.value.length + 1}`,
-      x: Math.floor(Math.random() * 800),
-      y: Math.floor(Math.random() * 500),
+      x,
+      y,
       monster_chance: Math.floor(Math.random() * 100),
       pirate_chance: Math.floor(Math.random() * 100),
       patrol_chance: Math.floor(Math.random() * 100),
@@ -344,6 +373,9 @@ const addNode = async () => {
       ...newIsland,
       color: getNodeColor(newIsland)
     });
+    
+    // Автоматически создаем связи для нового острова
+    await updateConnectionsForIsland(newIsland.id, newIsland.x, newIsland.y);
   } catch (error) {
     console.error('Ошибка добавления острова:', error);
     alert('Не удалось добавить остров. Пожалуйста, проверьте консоль для подробностей.');
@@ -398,233 +430,360 @@ onMounted(async () => {
   network.value.on('click', handleNodeClick)
   network.value.on('doubleClick', handleDoubleClick)
   network.value.on('dragEnd', async () => {
-    const positions = network.value.getPositions()
-    await Promise.all(Object.entries(positions).map(([id, pos]) => 
-      axios.put(`${API_BASE_URL}/islands/${id}`, { x: pos.x, y: pos.y })
-    ))
-    if (path.value.length > 0) await findOptimalPath()
-  })
+  try {
+    const positions = network.value.getPositions();
+    const updates = Object.entries(positions).map(async ([id, pos]) => {
+      // Ограничиваем координаты
+      const x = Math.max(0, Math.min(1400, pos.x));
+      const y = Math.max(0, Math.min(900, pos.y));
+      
+      try {
+        // Обновляем позицию острова в БД
+        await axios.put(`${API_BASE_URL}/islands/${id}`, { x, y });
+        
+        // Обновляем позицию в локальном хранилище
+        nodes.value.update({ id: parseInt(id), x, y });
+        
+        // Обновляем связи для этого острова
+        await updateConnectionsForIsland(id, x, y);
+      } catch (error) {
+        console.error('Ошибка обновления острова:', id, error);
+      }
+    });
+
+    await Promise.all(updates);
+    if (path.value.length > 0) await findOptimalPath();
+  } catch (error) {
+    console.error('Ошибка в обработчике dragEnd:', error);
+  }
+});
   
   await loadData()
 })
+
+const updateConnectionsForIsland = async (islandId, x, y) => {
+  try {
+    // Получаем все острова
+    const allIslands = nodes.value.get();
+    
+    // Находим острова в пределах MAX_CONNECTION_DISTANCE
+    const nearbyIslands = allIslands.filter(island => {
+      if (island.id === parseInt(islandId)) return false;
+      
+      const dx = x - island.x;
+      const dy = y - island.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      return distance <= MAX_CONNECTION_DISTANCE;
+    });
+    
+    // Получаем текущие связи для этого острова
+    const currentConnections = edges.value.get().filter(edge => 
+      edge.from === parseInt(islandId) || edge.to === parseInt(islandId)
+    );
+    
+    // Определяем, какие связи нужно добавить
+    const connectionsToAdd = nearbyIslands.filter(island => {
+      return !currentConnections.some(conn => 
+        (conn.from === parseInt(islandId) && conn.to === island.id) ||
+        (conn.to === parseInt(islandId) && conn.from === island.id)
+      );
+    });
+    
+    // Добавляем новые связи
+    for (const island of connectionsToAdd) {
+      const dx = x - island.x;
+      const dy = y - island.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      try {
+        const response = await axios.post(`${API_BASE_URL}/islands/connections`, {
+          from_island: parseInt(islandId),
+          to_island: island.id,
+          distance: parseFloat(distance.toFixed(2))
+        });
+        
+        edges.value.add({
+          id: response.data.id,
+          from: response.data.from_island,
+          to: response.data.to_island,
+          label: Math.round(response.data.distance).toString(),
+          length: response.data.distance,
+          width: 2,
+          color: '#7FB3D5'
+        });
+      } catch (error) {
+        console.error('Ошибка создания связи:', error);
+      }
+    }
+    
+    // Определяем, какие связи нужно удалить (если острова разошлись)
+    const connectionsToRemove = currentConnections.filter(conn => {
+      const otherIslandId = conn.from === parseInt(islandId) ? conn.to : conn.from;
+      const otherIsland = allIslands.find(i => i.id === otherIslandId);
+      
+      if (!otherIsland) return true;
+      
+      const dx = x - otherIsland.x;
+      const dy = y - otherIsland.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      return distance > MAX_CONNECTION_DISTANCE;
+    });
+    
+    // Удаляем старые связи
+    for (const conn of connectionsToRemove) {
+      try {
+        await axios.delete(`${API_BASE_URL}/islands/connections/${conn.id}`);
+        edges.value.remove(conn.id);
+      } catch (error) {
+        console.error('Ошибка удаления связи:', error);
+      }
+    }
+    
+    // Обновляем расстояния для оставшихся связей
+    const connectionsToUpdate = currentConnections.filter(conn => 
+      !connectionsToRemove.some(c => c.id === conn.id)
+    );
+    
+    for (const conn of connectionsToUpdate) {
+      const otherIslandId = conn.from === parseInt(islandId) ? conn.to : conn.from;
+      const otherIsland = allIslands.find(i => i.id === otherIslandId);
+      
+      if (otherIsland) {
+        const dx = x - otherIsland.x;
+        const dy = y - otherIsland.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        try {
+          await axios.put(`${API_BASE_URL}/islands/connections/${conn.id}`, {
+            distance: parseFloat(distance.toFixed(2))
+          });
+          
+          edges.value.update({
+            id: conn.id,
+            label: Math.round(distance).toString(),
+            length: distance
+          });
+        } catch (error) {
+          console.error('Ошибка обновления связи:', error);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Ошибка обновления связей:', error);
+  }
+};
+
 </script>
 
 <template>
-  <div class="p-4 h-full flex flex-col bg-blue-50">
+  <div class="world-map-page bg-gray-900 text-white font-mono min-h-screen p-6">
     <!-- Заголовок и кнопки управления -->
-    <div class="mb-4 p-4 bg-blue-800 text-white rounded-lg shadow-md">
-      <h1 class="text-2xl font-bold mb-2">Морские Пути Великого Путешествия</h1>
+    <div class="mb-6 p-6 bg-gray-800 rounded-2xl shadow-lg">
+      <h1 class="text-4xl font-bold mb-4">Морские Пути Великого Путешествия</h1>
       <div class="flex flex-wrap gap-4 items-center">
         <button 
           @click="addNode"
-          class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded transition"
+          class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition font-medium"
         >
           Добавить остров
         </button>
         
         <button 
           @click="resetSelection"
-          class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded transition"
+          class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl transition font-medium"
         >
           Сбросить выбор
         </button>
         
-        <div class="flex items-center gap-2">
-          <span class="text-sm">Старт:</span>
-          <span class="px-2 py-1 bg-green-100 text-green-800 rounded">
-            {{ startNode ? nodes.get(startNode).label : 'не выбран' }}
-          </span>
-          <span class="text-sm">Финиш:</span>
-          <span class="px-2 py-1 bg-red-100 text-red-800 rounded">
-            {{ endNode ? nodes.get(endNode).label : 'не выбран' }}
-          </span>
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2">
+            <span class="text-sm">Старт:</span>
+            <span class="px-3 py-1.5 bg-green-900/50 text-green-300 rounded-lg font-medium">
+              {{ startNode ? nodes.get(startNode).label : 'не выбран' }}
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-sm">Финиш:</span>
+            <span class="px-3 py-1.5 bg-red-900/50 text-red-300 rounded-lg font-medium">
+              {{ endNode ? nodes.get(endNode).label : 'не выбран' }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Критерии поиска -->
-    <div class="mb-4 p-4 bg-white rounded-lg shadow-md border border-blue-200">
-      <h3 class="text-lg font-bold mb-3 text-blue-800">Критерии поиска пути</h3>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="mb-6 p-6 bg-gray-800 rounded-2xl shadow-lg border border-gray-700">
+      <h3 class="text-xl font-bold mb-4 text-blue-400">Критерии поиска пути</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Дистанция ({{ searchCriteria.distance }}%)</label>
+          <label class="block text-sm font-medium text-gray-300 mb-2">Дистанция ({{ searchCriteria.distance }}%)</label>
           <input type="range" min="0" max="100" v-model="searchCriteria.distance" 
                  @change="findOptimalPath"
-                 class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer">
+                 class="w-full h-2 bg-blue-600 rounded-lg appearance-none cursor-pointer">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Морские чудовища ({{ searchCriteria.monsterRisk }}%)</label>
+          <label class="block text-sm font-medium text-gray-300 mb-2">Морские чудовища ({{ searchCriteria.monsterRisk }}%)</label>
           <input type="range" min="0" max="100" v-model="searchCriteria.monsterRisk" 
                  @change="findOptimalPath"
-                 class="w-full h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer">
+                 class="w-full h-2 bg-purple-600 rounded-lg appearance-none cursor-pointer">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Пираты ({{ searchCriteria.pirateRisk }}%)</label>
+          <label class="block text-sm font-medium text-gray-300 mb-2">Пираты ({{ searchCriteria.pirateRisk }}%)</label>
           <input type="range" min="0" max="100" v-model="searchCriteria.pirateRisk" 
                  @change="findOptimalPath"
-                 class="w-full h-2 bg-red-200 rounded-lg appearance-none cursor-pointer">
+                 class="w-full h-2 bg-red-600 rounded-lg appearance-none cursor-pointer">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Морской дозор ({{ searchCriteria.patrolRisk }}%)</label>
+          <label class="block text-sm font-medium text-gray-300 mb-2">Морской дозор ({{ searchCriteria.patrolRisk }}%)</label>
           <input type="range" min="0" max="100" v-model="searchCriteria.patrolRisk" 
                  @change="findOptimalPath"
-                 class="w-full h-2 bg-yellow-200 rounded-lg appearance-none cursor-pointer">
+                 class="w-full h-2 bg-yellow-600 rounded-lg appearance-none cursor-pointer">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Штормы ({{ searchCriteria.stormRisk }}%)</label>
+          <label class="block text-sm font-medium text-gray-300 mb-2">Штормы ({{ searchCriteria.stormRisk }}%)</label>
           <input type="range" min="0" max="100" v-model="searchCriteria.stormRisk" 
                  @change="findOptimalPath"
-                 class="w-full h-2 bg-cyan-200 rounded-lg appearance-none cursor-pointer">
+                 class="w-full h-2 bg-cyan-600 rounded-lg appearance-none cursor-pointer">
         </div>
         <div class="flex items-center">
           <input type="checkbox" id="preferHarbors" v-model="searchCriteria.preferHarbors" 
                  @change="findOptimalPath"
-                 class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
-          <label for="preferHarbors" class="ml-2 text-sm font-medium text-gray-700">Предпочитать порты</label>
+                 class="w-5 h-5 text-blue-600 rounded border-gray-600 bg-gray-700 focus:ring-blue-500">
+          <label for="preferHarbors" class="ml-3 text-sm font-medium text-gray-300">Предпочитать порты</label>
         </div>
       </div>
     </div>
 
     <!-- Карта -->
-    <div class="flex-1 relative">
-      <div 
-        class="network-container w-full h-full rounded-lg border-2 border-blue-300 bg-blue-100 shadow-inner"
-        style="background-image: radial-gradient(circle at 1px 1px, #7FB3D5 1px, transparent 0);
-               background-size: 20px 20px;"
-      ></div>
-      
-      <!-- Легенда -->
-      <div class="absolute bottom-4 left-4 bg-white p-3 rounded-lg shadow-md border border-blue-200">
-        <div class="flex items-center mb-2">
-          <div class="w-4 h-4 rounded-full bg-blue-500 mr-2"></div>
-          <span class="text-sm">Обычный остров</span>
-        </div>
-        <div class="flex items-center mb-2">
-          <div class="w-4 h-4 rounded-full bg-green-500 mr-2"></div>
-          <span class="text-sm">Порт/убежище</span>
-        </div>
-        <div class="flex items-center mb-2">
-          <div class="w-4 h-4 rounded-full bg-yellow-500 mr-2"></div>
-          <span class="text-sm">Опасная зона</span>
-        </div>
-        <div class="flex items-center">
-          <div class="w-4 h-4 rounded-full bg-red-500 mr-2"></div>
-          <span class="text-sm">Очень опасно</span>
-        </div>
-      </div>
-    </div>
+    <div class="flex-1 relative h-full">
+  <div 
+    class="network-container w-full rounded-2xl border-2 border-gray-700 bg-gray-900 shadow-lg"
+    style="background-image: radial-gradient(circle at 1px 1px, #4B5563 1px, transparent 0);
+           background-size: 40px 40px;"
+  ></div>
+</div>
 
     <!-- Статистика пути -->
-    <div v-if="path.length > 0" class="mt-4 p-4 bg-white rounded-lg shadow-md border border-blue-200">
-      <h3 class="text-lg font-bold mb-3 text-blue-800">Статистика маршрута</h3>
+    <div v-if="path.length > 0" class="mt-6 p-6 bg-gray-800 rounded-2xl shadow-lg border border-gray-700">
+      <h3 class="text-xl font-bold mb-4 text-blue-400">Статистика маршрута</h3>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="p-3 bg-blue-100 rounded-lg border border-blue-200">
-          <div class="text-sm font-medium text-blue-800">Общая дистанция</div>
+        <div class="p-4 bg-blue-900/30 rounded-xl border border-blue-800">
+          <div class="text-sm font-medium text-blue-300">Общая дистанция</div>
           <div class="text-xl font-bold">{{ pathStats.distance }}</div>
         </div>
-        <div class="p-3 bg-purple-100 rounded-lg border border-purple-200">
-          <div class="text-sm font-medium text-purple-800">Опасность чудовищ</div>
+        <div class="p-4 bg-purple-900/30 rounded-xl border border-purple-800">
+          <div class="text-sm font-medium text-purple-300">Опасность чудовищ</div>
           <div class="text-xl font-bold">{{ pathStats.monsterRisk }}%</div>
         </div>
-        <div class="p-3 bg-red-100 rounded-lg border border-red-200">
-          <div class="text-sm font-medium text-red-800">Опасность пиратов</div>
+        <div class="p-4 bg-red-900/30 rounded-xl border border-red-800">
+          <div class="text-sm font-medium text-red-300">Опасность пиратов</div>
           <div class="text-xl font-bold">{{ pathStats.pirateRisk }}%</div>
         </div>
-        <div class="p-3 bg-yellow-100 rounded-lg border border-yellow-200">
-          <div class="text-sm font-medium text-yellow-800">Опасность патруля</div>
+        <div class="p-4 bg-yellow-900/30 rounded-xl border border-yellow-800">
+          <div class="text-sm font-medium text-yellow-300">Опасность патруля</div>
           <div class="text-xl font-bold">{{ pathStats.patrolRisk }}%</div>
         </div>
-        <div class="p-3 bg-cyan-100 rounded-lg border border-cyan-200">
-          <div class="text-sm font-medium text-cyan-800">Опасность шторма</div>
+        <div class="p-4 bg-cyan-900/30 rounded-xl border border-cyan-800">
+          <div class="text-sm font-medium text-cyan-300">Опасность шторма</div>
           <div class="text-xl font-bold">{{ pathStats.stormRisk }}%</div>
         </div>
-        <div class="p-3 bg-green-100 rounded-lg border border-green-200">
-          <div class="text-sm font-medium text-green-800">Порты на пути</div>
+        <div class="p-4 bg-green-900/30 rounded-xl border border-green-800">
+          <div class="text-sm font-medium text-green-300">Порты на пути</div>
           <div class="text-xl font-bold">{{ pathStats.harborCount }}</div>
         </div>
-        <div class="p-3 bg-orange-100 rounded-lg border border-orange-200">
-          <div class="text-sm font-medium text-orange-800">Общий показатель опасности</div>
+        <div class="p-4 bg-orange-900/30 rounded-xl border border-orange-800">
+          <div class="text-sm font-medium text-orange-300">Общий показатель опасности</div>
           <div class="text-xl font-bold">{{ pathStats.dangerScore }}</div>
         </div>
       </div>
     </div>
 
     <!-- Редактор узла -->
-    <div v-if="showNodeEditor" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div class="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
-        <h3 class="text-xl font-bold mb-4 text-blue-800">Редактирование острова</h3>
+    <div v-if="showNodeEditor" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+      <div class="bg-gray-800 p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-700">
+        <h3 class="text-2xl font-bold mb-6 text-blue-400">Редактирование острова</h3>
         
-        <div class="space-y-4">
+        <div class="space-y-5">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Название</label>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Название</label>
             <input v-model="nodeForm.name" type="text" 
-                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                   class="w-full px-4 py-2.5 bg-gray-700 border border-gray-600 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
           </div>
           
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Чудовища (%)</label>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Чудовища (%)</label>
               <input v-model.number="nodeForm.monster_chance" type="number" min="0" max="100"
-                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                     class="w-full px-4 py-2.5 bg-gray-700 border border-gray-600 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Пираты (%)</label>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Пираты (%)</label>
               <input v-model.number="nodeForm.pirate_chance" type="number" min="0" max="100"
-                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                     class="w-full px-4 py-2.5 bg-gray-700 border border-gray-600 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
           </div>
           
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Дозор (%)</label>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Дозор (%)</label>
               <input v-model.number="nodeForm.patrol_chance" type="number" min="0" max="100"
-                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                     class="w-full px-4 py-2.5 bg-gray-700 border border-gray-600 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Штормы (%)</label>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Штормы (%)</label>
               <input v-model.number="nodeForm.storm_chance" type="number" min="0" max="100"
-                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                     class="w-full px-4 py-2.5 bg-gray-700 border border-gray-600 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
           </div>
           
           <div class="flex items-center">
             <input v-model="nodeForm.has_harbor" type="checkbox" 
-                   class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-            <label class="ml-2 block text-sm text-gray-700">Есть порт/убежище</label>
+                   class="w-5 h-5 text-blue-600 border-gray-600 bg-gray-700 rounded focus:ring-blue-500">
+            <label class="ml-3 block text-sm text-gray-300">Есть порт/убежище</label>
           </div>
         </div>
         
-        <div class="mt-6 flex justify-end space-x-3">
+        <div class="mt-8 flex justify-end space-x-4">
           <button @click="showNodeEditor = false" 
-                  class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition">
+                  class="px-6 py-2.5 bg-gray-600 hover:bg-gray-700 text-white rounded-xl transition font-medium">
             Отмена
           </button>
           <button @click="updateNode" 
-                  class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
+                  class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition font-medium">
             Сохранить
           </button>
         </div>
       </div>
     </div>
 
-    <FooterMap />
   </div>
 </template>
 
 <style>
+.world-map-page {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
 .network-container {
-  background-image: radial-gradient(circle at 1px 1px, #7FB3D5 1px, transparent 0);
-  background-size: 20px 20px;
+  min-height: 600px;
+  height: 70vh;
+  width: 100%;
+  position: relative;
+  overflow: visible !important; 
 }
 
 /* Стили для ползунков */
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   cursor: pointer;
+  background: currentColor;
+  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 input[type="range"][class*="bg-blue"]::-webkit-slider-thumb {

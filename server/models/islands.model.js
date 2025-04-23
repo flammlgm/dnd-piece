@@ -6,8 +6,12 @@ export const getAllIslands = async () => {
 }
 
 export const getIslandById = async (id) => {
-  const { rows } = await pool.query('SELECT * FROM islands WHERE id = $1', [id])
-  return rows[0]
+  if (isNaN(parseInt(id))) {
+    throw new Error(`Invalid island ID: ${id}`);
+  }
+  
+  const { rows } = await pool.query('SELECT * FROM islands WHERE id = $1', [parseInt(id)]);
+  return rows[0];
 }
 
 export const createIsland = async (islandData) => {
@@ -25,8 +29,8 @@ export const createIsland = async (islandData) => {
      RETURNING *`,
     [
       name || `Остров ${Math.floor(Math.random() * 1000)}`,
-      x || Math.floor(Math.random() * 800),
-      y || Math.floor(Math.random() * 500),
+      x || Math.floor(Math.random() * 1400), // Увеличено до 1400
+      y || Math.floor(Math.random() * 900),  // Увеличено до 900
       monster_chance || Math.floor(Math.random() * 100),
       pirate_chance || Math.floor(Math.random() * 100),
       patrol_chance || Math.floor(Math.random() * 100),
@@ -38,34 +42,33 @@ export const createIsland = async (islandData) => {
 }
 
 export const updateIsland = async (id, islandData) => {
-  const { 
-    name, x, y, 
-    monster_chance, pirate_chance, 
-    patrol_chance, storm_chance, 
-    has_harbor 
-  } = islandData
+  if (isNaN(parseInt(id))) {
+    throw new Error(`Invalid island ID: ${id}`);
+  }
   
-  const { rows } = await pool.query(
-    `UPDATE islands SET 
-     name = $1, x = $2, y = $3, 
-     monster_chance = $4, pirate_chance = $5, 
-     patrol_chance = $6, storm_chance = $7,
-     has_harbor = $8,
-     updated_at = NOW()
-     WHERE id = $9
-     RETURNING *`,
-    [
-      name,
-      x, y,
-      monster_chance,
-      pirate_chance,
-      patrol_chance,
-      storm_chance,
-      has_harbor,
-      id
-    ]
-  )
-  return rows[0]
+  const fields = [];
+  const values = [];
+  let paramIndex = 1;
+  
+  for (const [key, value] of Object.entries(islandData)) {
+    fields.push(`${key} = $${paramIndex}`);
+    values.push(value);
+    paramIndex++;
+  }
+  
+  fields.push('updated_at = NOW()');
+  
+  values.push(id);
+  
+  const queryText = `
+    UPDATE islands SET 
+    ${fields.join(', ')}
+    WHERE id = $${paramIndex}
+    RETURNING *
+  `;
+  
+  const { rows } = await pool.query(queryText, values);
+  return rows[0];
 }
 
 export const deleteIsland = async (id) => {
@@ -73,15 +76,19 @@ export const deleteIsland = async (id) => {
 }
 
 export const getAllConnections = async () => {
-    const { rows } = await pool.query(`
-      SELECT ic.id, ic.from_island, ic.to_island, ic.distance, ic.created_at
-      FROM island_connections ic
-      WHERE EXISTS (SELECT 1 FROM islands WHERE id = ic.from_island)
-      AND EXISTS (SELECT 1 FROM islands WHERE id = ic.to_island)
-      ORDER BY ic.id
-    `);
+  try {
+    const { rows } = await pool.query('SELECT * FROM island_connections');
+    console.log('Fetched connections:', rows); // Добавьте логирование
     return rows;
+  } catch (err) {
+    console.error('Database error in getAllConnections:', {
+      message: err.message,
+      stack: err.stack,
+      query: 'SELECT * FROM island_connections'
+    });
+    throw err;
   }
+}
 
 export const getConnectionsForIsland = async (islandId) => {
   const { rows } = await pool.query(
@@ -107,3 +114,14 @@ export const createConnection = async (fromIsland, toIsland, distance) => {
 export const deleteConnection = async (id) => {
   await pool.query('DELETE FROM island_connections WHERE id = $1', [id])
 }
+
+export const updateConnection = async (id, distance) => {
+  const { rows } = await pool.query(
+    `UPDATE island_connections 
+     SET distance = $1, updated_at = NOW()
+     WHERE id = $2
+     RETURNING *`,
+    [distance, id]
+  );
+  return rows[0];
+};
