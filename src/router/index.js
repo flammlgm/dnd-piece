@@ -34,7 +34,7 @@ const routes = [
     path: '/map',
     name: 'WorldMap',
     component: WorldMap,
-    meta: { requiresGuest: false }
+    meta: { requiresAuth: true }
   },
   {
     path: '/register',

@@ -2,16 +2,29 @@ import pool from '../config/db.js'
 
 export const getAllIslands = async () => {
   const { rows } = await pool.query('SELECT * FROM islands ORDER BY id')
-  return rows
+  return rows.map(validateIsland)
 }
 
 export const getIslandById = async (id) => {
-  if (isNaN(parseInt(id))) {
-    throw new Error(`Invalid island ID: ${id}`);
+  if (!Number.isInteger(Number(id))) {
+    throw new Error('Invalid island ID')
   }
   
-  const { rows } = await pool.query('SELECT * FROM islands WHERE id = $1', [parseInt(id)]);
-  return rows[0];
+  const { rows } = await pool.query('SELECT * FROM islands WHERE id = $1', [id])
+  return rows.length ? validateIsland(rows[0]) : null
+}
+
+function validateIsland(island) {
+  return {
+    ...island,
+    x: Math.max(0, Math.min(1400, Number(island.x) || 0)),
+    y: Math.max(0, Math.min(900, Number(island.y) || 0)),
+    monster_chance: Math.max(0, Math.min(100, Number(island.monster_chance) || 0)),
+    pirate_chance: Math.max(0, Math.min(100, Number(island.pirate_chance) || 0)),
+    patrol_chance: Math.max(0, Math.min(100, Number(island.patrol_chance) || 0)),
+    storm_chance: Math.max(0, Math.min(100, Number(island.storm_chance) || 0)),
+    has_harbor: Boolean(island.has_harbor)
+  }
 }
 
 export const createIsland = async (islandData) => {
@@ -75,53 +88,3 @@ export const deleteIsland = async (id) => {
   await pool.query('DELETE FROM islands WHERE id = $1', [id])
 }
 
-export const getAllConnections = async () => {
-  try {
-    const { rows } = await pool.query('SELECT * FROM island_connections');
-    console.log('Fetched connections:', rows); // Добавьте логирование
-    return rows;
-  } catch (err) {
-    console.error('Database error in getAllConnections:', {
-      message: err.message,
-      stack: err.stack,
-      query: 'SELECT * FROM island_connections'
-    });
-    throw err;
-  }
-}
-
-export const getConnectionsForIsland = async (islandId) => {
-  const { rows } = await pool.query(
-    `SELECT ic.*, i2.name as to_name 
-     FROM island_connections ic
-     JOIN islands i2 ON ic.to_island = i2.id
-     WHERE ic.from_island = $1`,
-    [islandId]
-  )
-  return rows
-}
-
-export const createConnection = async (fromIsland, toIsland, distance) => {
-  const { rows } = await pool.query(
-    `INSERT INTO island_connections (from_island, to_island, distance)
-     VALUES ($1, $2, $3)
-     RETURNING *`,
-    [fromIsland, toIsland, distance]
-  )
-  return rows[0]
-}
-
-export const deleteConnection = async (id) => {
-  await pool.query('DELETE FROM island_connections WHERE id = $1', [id])
-}
-
-export const updateConnection = async (id, distance) => {
-  const { rows } = await pool.query(
-    `UPDATE island_connections 
-     SET distance = $1, updated_at = NOW()
-     WHERE id = $2
-     RETURNING *`,
-    [distance, id]
-  );
-  return rows[0];
-};

@@ -11,14 +11,13 @@ import visibilityRouter from './routes/visibility.routes.js';
 import usersRouter from './routes/users.routes.js';
 import charactersRouter from './routes/characters.routes.js';
 import islandsRouter from './routes/islands.routes.js';
-import pathfindingRouter from './routes/pathfinding.routes.js'
 
 const app = express();
 
 app.use(cors({
   origin: 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control'], 
   credentials: true
 }));
 app.use(express.json());
@@ -35,7 +34,6 @@ app.use('/api/visibility', visibilityRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/characters', charactersRouter);
 app.use('/api/islands', islandsRouter);
-app.use('/api/pathfinding', pathfindingRouter)
 
 app.options('*', (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
