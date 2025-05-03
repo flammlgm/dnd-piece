@@ -4,7 +4,10 @@ import { DataSet } from 'vis-data'
 import { Network } from 'vis-network'
 import axios from 'axios'
 import Button from "@/components/UI/Button/Button.vue"
+import { useAuthStore } from '@/stores/auth';
 
+const authStore = useAuthStore();
+const isMaster = computed(() => authStore.user?.role === 'master');
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
 
 // Константы
@@ -82,7 +85,7 @@ const pathStats = computed(() => {
 })
 
 // Настройки визуализации
-const options = {
+const options = computed(() => ({
   nodes: {
     shape: 'dot',
     size: 10,
@@ -96,8 +99,8 @@ const options = {
       }
     },
     fixed: {
-      x: false,
-      y: false
+      x: !isMaster.value, // Фиксируем позицию, если не мастер
+      y: !isMaster.value  // Фиксируем позицию, если не мастер
     },  
     font: {
       size: 12,
@@ -112,7 +115,8 @@ const options = {
     smooth: false,
     selectionWidth: 0,
     arrows: { to: false },
-    dashes: false
+    dashes: false,
+    font: { size: 0 }
   },
   physics: {
     enabled: false,
@@ -122,7 +126,7 @@ const options = {
     }
   },
   interaction: {
-    dragNodes: true,
+    dragNodes: isMaster.value, // Разрешаем перетаскивание только мастеру
     dragView: true,
     zoomView: true,
     multiselect: false,
@@ -137,7 +141,7 @@ const options = {
   },
   width: '100%',
   height: '100%'
-}
+}))
 
 // Загрузка данных
 const loadData = async () => {
@@ -184,7 +188,7 @@ const generateConnections = () => {
           id: `${node1.id}-${node2.id}`,
           from: node1.id,
           to: node2.id,
-          label: Math.round(distance).toString(),
+          // label: Math.round(distance).toString(),
           length: distance,
           width: 2,
           color: '#7FB3D5'
@@ -291,7 +295,7 @@ const handleNodeClick = async (params) => {
 }
 
 const handleDoubleClick = (params) => {
-  if (params.nodes.length === 1) {
+  if (params.nodes.length === 1 && isMaster.value) {
     selectedNode.value = params.nodes[0]
     const node = nodes.value.get(selectedNode.value)
     nodeForm.value = {
@@ -719,7 +723,7 @@ onMounted(async () => {
   network.value = new Network(
     container,
     { nodes: nodes.value, edges: edges.value },
-    options
+    options.value // Используем options.value
   )
   
   network.value.on('click', handleNodeClick)
@@ -727,10 +731,18 @@ onMounted(async () => {
   network.value.on('dragEnd', handleDragEnd)
   
   await loadData()
+
+  // Обновляем настройки при изменении роли пользователя
+  watch(isMaster, () => {
+    if (network.value) {
+      network.value.setOptions(options.value)
+    }
+  })
 })
 
 // Обработчик перемещения узлов
 const handleDragEnd = async () => {
+  if (!isMaster.value) return;
   try {
     const positions = network.value.getPositions()
     const updates = Object.entries(positions).map(async ([id, pos]) => {
@@ -857,8 +869,21 @@ const deleteNode = async () => {
         </div>
       </div>
       <div class="flex flex-wrap gap-4 items-center mx-10">
-        <Button @click="addNode" text="Добавить остров" type="primary" size="medium" class="font-bold"/>
-        <Button @click="resetSelection" text="Сбросить выбор" type="danger" size="medium" class="font-bold"/>
+        <Button 
+          v-if="isMaster" 
+          @click="addNode" 
+          text="Добавить остров" 
+          type="primary" 
+          size="medium" 
+          class="font-bold"
+        />
+        <Button 
+          @click="resetSelection" 
+          text="Сбросить выбор" 
+          type="danger" 
+          size="medium" 
+          class="font-bold"
+        />
         
         <div class="flex items-center gap-4">
           <div class="flex items-center gap-2">
@@ -913,7 +938,7 @@ const deleteNode = async () => {
     </div>
 
     <!-- Редактор узла -->
-    <div v-if="showNodeEditor" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+    <div v-if="showNodeEditor && isMaster" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
       <div class="bg-gray-800 p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-700">
         <h3 class="text-2xl font-bold mb-6 text-blue-400">Редактирование острова</h3>
         
