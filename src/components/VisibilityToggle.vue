@@ -147,7 +147,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-/* Добавим плавную анимацию для меню */
 .dropdown-enter-active,
 .dropdown-leave-active {
   transition: opacity 0.2s, transform 0.2s;

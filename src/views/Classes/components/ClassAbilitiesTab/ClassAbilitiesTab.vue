@@ -5,7 +5,9 @@ import SpellForm from './components/SpellForm.vue';
 import SpellView from './components/SpellView.vue';
 import IconButton from '@/components/UI/Button/IconButton.vue';
 import { Plus } from 'lucide-vue-next';
+import {useAuthStore} from '@/stores/auth.js'
 
+const authStore = useAuthStore()
 const props = defineProps({
   spells: Array,
   classId: Number
@@ -77,7 +79,7 @@ const cancelSpellEdit = () => {
   <div class="bg-gray-800 rounded-xl p-6">
     <h2 class="text-2xl font-bold mb-4 flex items-center gap-2 justify-between">
        Особые силы
-      <IconButton @click="startCreatingSpell">
+      <IconButton @click="startCreatingSpell" v-if="authStore.user?.role === 'master'">
         <Plus/>
       </IconButton>
     </h2>

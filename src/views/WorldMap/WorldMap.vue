@@ -903,7 +903,7 @@ const deleteNode = async () => {
     </div>
 
     <!-- Статистика пути -->
-    <div v-if="path.length > 0" class="mt-6 p-6 bg-gray-800 rounded-2xl shadow-lg border border-gray-700">
+    <div v-if="path.length > 0 && isMaster" class="mt-6 p-6 bg-gray-800 rounded-2xl shadow-lg border border-gray-700">
       <h3 class="text-xl font-bold mb-4 text-blue-400">Статистика маршрута</h3>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="p-4 bg-blue-900/30 rounded-xl border border-blue-800">
@@ -1072,7 +1072,7 @@ input[type="range"][class*="bg-red"]::-webkit-slider-thumb {
 }
 input[type="range"][class*="bg-yellow"]::-webkit-slider-thumb {
   background: #F59E0B;
-}
+} 
 input[type="range"][class*="bg-cyan"]::-webkit-slider-thumb {
   background: #06B6D4;
 }

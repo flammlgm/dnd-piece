@@ -2,7 +2,9 @@
 import Modal from '@/components/UI/Modal.vue';
 import IconButton from '@/components/UI/Button/IconButton.vue';
 import { Pen, Trash, X } from 'lucide-vue-next';
+import {useAuthStore} from '@/stores/auth.js'
 
+const authStore = useAuthStore()
 defineProps({
   fruit: Object
 });
@@ -19,12 +21,15 @@ defineEmits(['edit', 'delete', 'close']);
     <div class="bg-gray-800 p-6 rounded-xl w-[900px]">
       <div class="flex space-x-2 items-start">
         <h3 class="text-xl font-bold">{{ fruit.name }}</h3>
-        <IconButton @click="$emit('edit', fruit)" title="Редактировать">
-          <Pen class="w-4 h-4"/>
-        </IconButton>
-        <IconButton @click="$emit('delete', fruit.id)" title="Удалить">
-          <Trash class="w-4 h-4"/>
-        </IconButton>
+        <div v-if="authStore.user?.role === 'master'">
+          <IconButton @click="$emit('edit', fruit)" title="Редактировать">
+            <Pen class="w-4 h-4"/>
+          </IconButton>
+          <IconButton @click="$emit('delete', fruit.id)" title="Удалить">
+            <Trash class="w-4 h-4"/>
+          </IconButton>
+        </div>
+        
           
       </div>
       <p class="text-sm text-gray-500 font-style: italic mb-4">{{ fruit.type }}  {{ fruit.abilities.rarity }}</p>

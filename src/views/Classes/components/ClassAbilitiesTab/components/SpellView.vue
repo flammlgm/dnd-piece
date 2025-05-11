@@ -2,7 +2,9 @@
 import Modal from '@/components/UI/Modal.vue';
 import IconButton from '@/components/UI/Button/IconButton.vue';
 import { Pen, Trash, X } from 'lucide-vue-next';
+import {useAuthStore} from '@/stores/auth.js'
 
+const authStore = useAuthStore()
 defineProps({
   spell: Object
 });
@@ -19,10 +21,10 @@ defineEmits(['edit', 'delete', 'close']);
     <div class="bg-gray-800 p-6 rounded-xl max-w-5xl w-full">
       <div class="flex space-x-2 items-start">
         <h3 class="text-xl font-bold">{{ spell.name }}</h3>
-        <IconButton @click="$emit('edit', spell)" title="Редактировать">
+        <IconButton @click="$emit('edit', spell)" title="Редактировать" v-if="authStore.user?.role === 'master'">
             <Pen class="w-4 h-4"/>
           </IconButton>
-          <IconButton @click="$emit('delete', spell.id)" title="Удалить">
+          <IconButton @click="$emit('delete', spell.id)" title="Удалить" v-if="authStore.user?.role === 'master'">
             <Trash class="w-4 h-4"/>
           </IconButton>
           

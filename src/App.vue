@@ -7,7 +7,6 @@ const authStore = useAuthStore();
 </script>
 
 <template>
-  <!-- <SimpleAuth v-if="showAuth" /> -->
   <div class="min-h-screen bg-gray-900" >
     <NavBar v-if="authStore.user" />
     <router-view/>

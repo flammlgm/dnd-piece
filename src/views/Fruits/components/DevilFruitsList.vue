@@ -23,11 +23,9 @@ const emit = defineEmits(['view']);
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <VisibilityToggle
-              v-for="fruit in fruits
-                  .filter(f => f.type === type && f.abilities.rarity === rarity)
-                  .sort((a, b) => a.name.localeCompare(b.name))" 
+              v-for="fruit in fruits.filter(f => f.type === type && f.abilities.rarity === rarity).sort((a, b) => a.name.localeCompare(b.name))" 
                 :key="fruit.id"
-                :content-id="'fruit-' + fruit.id"
+                :content-id="`fruit-${fruit.id}`"
                 content-type="fruit"
                 >
               <div 

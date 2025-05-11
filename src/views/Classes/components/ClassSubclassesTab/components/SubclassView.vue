@@ -1,7 +1,10 @@
 <script setup>
 import IconButton from '@/components/UI/Button/IconButton.vue';
 import { Pen, Trash } from 'lucide-vue-next';
+import {useAuthStore} from '@/stores/auth.js'
+import VisibilityToggle from '@/components/VisibilityToggle.vue'
 
+const authStore = useAuthStore()
 defineProps({
   subclass: Object
 });
@@ -13,7 +16,7 @@ defineEmits(['edit', 'delete']);
   <div>
     <div class="flex justify-between items-start mb-6">
       <h2 class="text-3xl font-bold">{{ subclass.name }}</h2>
-      <div class="flex gap-2">
+      <div class="flex gap-2" v-if="authStore.user?.role === 'master'">
         <IconButton @click="$emit('edit', subclass)" title="Редактировать">
           <Pen class="w-4 h-4"/>
         </IconButton>
@@ -72,7 +75,12 @@ defineEmits(['edit', 'delete']);
 
     <!-- Описание навыков подкласса -->
     <div v-if="subclass.features?.levels?.length" class="space-y-6">
-      <div v-for="level in subclass.features.levels" :key="`subclass-desc-${level.level}`">
+      <VisibilityToggle 
+      v-for="level in subclass.features.levels" 
+      :key="`subclass-desc-${level.level}`"
+      :content-id="`subclass-desc-${level.level}`"
+      content-type="subclass-desc">
+      
         <h2 class="text-2xl font-bold mb-4 pt-4 border-t border-gray-700">Уровень {{ level.level }}</h2>
         
         <div 
@@ -87,7 +95,7 @@ defineEmits(['edit', 'delete']);
             v-html="skill.description.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')"
           ></div>
         </div>
-      </div>
+      </VisibilityToggle>
     </div>
   </div>
 </template>

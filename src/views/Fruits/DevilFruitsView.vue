@@ -8,7 +8,9 @@ import DevilFruitForm from './components/DevilFruitForm.vue';
 import DevilFruitView from './components/DevilFruitView.vue';
 import IconButton from '@/components/UI/Button/IconButton.vue';
 import { Plus } from 'lucide-vue-next';
+import {useAuthStore} from '@/stores/auth.js'
 
+const authStore = useAuthStore()
 const router = useRouter();
 
 // Состояния данных
@@ -142,7 +144,7 @@ onMounted(() => {
     <div class="bg-gray-800 rounded-2xl p-6">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-4xl font-bold">Дьявольские фрукты</h1>
-        <IconButton @click="startCreatingFruit">
+        <IconButton @click="startCreatingFruit" v-if="authStore.user?.role === 'master'">
           <Plus/>
         </IconButton>
       </div>

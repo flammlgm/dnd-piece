@@ -1,4 +1,6 @@
 <script setup>
+import VisibilityToggle from '@/components/VisibilityToggle.vue'
+
 defineProps({
   spells: Array,
   spellLevels: Array
@@ -9,7 +11,11 @@ const emit = defineEmits(['view']);
 
 <template>
   <div class="space-y-6">
-    <div v-for="level in spellLevels" :key="level">
+    <VisibilityToggle 
+    v-for="level in spellLevels" 
+    :key="level"
+    :content-id="`desc-spell-${level}`"
+    content-type="desc-spell">
       <div v-if="spells.filter(s => s.level === level).length > 0" class="mb-6">
         <h3 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">
           {{ level === 'Природные силы' ? level : `${level} уровень` }}
@@ -37,6 +43,6 @@ const emit = defineEmits(['view']);
           </div>
         </div>
       </div>
-    </div>
+    </VisibilityToggle>
   </div>
 </template>

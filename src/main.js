@@ -7,11 +7,9 @@ import './assets/tailwind.css';
 const app = createApp(App);
 const pinia = createPinia();
 
-// Порядок важен: сначала Pinia, потом Router
 app.use(pinia);
 app.use(router);
 
-// Добавляем навигационную защиту после создания приложения
 import { useAuthStore } from '@/stores/auth';
 
 router.beforeEach(async (to, from, next) => {

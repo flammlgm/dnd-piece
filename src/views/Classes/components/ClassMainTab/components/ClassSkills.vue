@@ -1,4 +1,6 @@
 <script setup>
+import VisibilityToggle from '@/components/VisibilityToggle.vue'
+
 defineProps({
   features: Object
 });
@@ -6,7 +8,11 @@ defineProps({
 
 <template>
   <div v-if="features?.levels?.length" class="space-y-6">
-    <div v-for="level in features.levels" :key="`desc-${level.level}`">
+    <VisibilityToggle 
+    v-for="level in features.levels" 
+    :key="`desc-${level.level}`"
+    :content-id="`desc-${level.id}`"
+    content-type="desc">
       <h2 class="text-3xl font-bold mb-6 pt-6 border-t border-gray-700">Уровень {{ level.level }}</h2>
       
       <div 
@@ -21,6 +27,6 @@ defineProps({
           v-html="skill.description.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')"
         ></div>
       </div>
-    </div>
+    </VisibilityToggle>
   </div>
 </template>
