@@ -14,7 +14,7 @@ defineProps({
             <th 
               v-for="column in features.columns" 
               :key="column.key"
-              class="p-2 border border-gray-600 text-left"
+              class="p-2 border border-gray-600 text-left w-auto"
             >
               {{ column.title }}
             </th>

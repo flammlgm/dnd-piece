@@ -46,28 +46,36 @@ defineEmits(['edit', 'delete']);
           </thead>
           <tbody>
             <tr 
-              v-for="level in subclass.features.levels" 
-              :key="level.level"
-              class="hover:bg-gray-700/50"
+            v-for="level in subclass.features.levels" 
+            :key="level.level"
+            class="hover:bg-gray-700/50"
+          >
+            <td 
+              v-for="column in subclass.features.columns" 
+              :key="column.key"
+              class="p-2 border border-gray-600"
             >
-              <td 
-                v-for="column in subclass.features.columns" 
-                :key="column.key"
-                class="p-2 border border-gray-600"
-              >
-                <template v-if="column.key === 'level'">
-                  {{ level.level }}
-                </template>
-                <template v-else-if="column.key === 'skills'">
+              <!-- Отладочная информация (можно убрать после проверки) -->
+              <span class="hidden">{{ `[${column.key}: ${JSON.stringify(level[column.key])}]` }}</span>
+              
+              <template v-if="column.key === 'level'">
+                {{ level.level }}
+              </template>
+              
+              <template v-else-if="column.key === 'features'">
+                <template v-if="level.skills?.length">
                   <div v-for="(skill, i) in level.skills" :key="i" class="mb-1 last:mb-0">
                     {{ skill.name }}<span v-if="i < level.skills.length - 1">,</span>
                   </div>
                 </template>
-                <template v-else>
-                  {{ level[column.key] || '-' }}
-                </template>
-              </td>
-            </tr>
+                <template v-else>-</template>
+              </template>
+              
+              <template v-else>
+                {{ level.hasOwnProperty(column.key) ? (level[column.key] || '-') : '∅' }}
+              </template>
+            </td>
+          </tr>
           </tbody>
         </table>
       </div>

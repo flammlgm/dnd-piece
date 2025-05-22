@@ -31,7 +31,7 @@ const emit = defineEmits(['view']);
             <div class="flex justify-between items-start">
               <h4 class="text-lg font-bold">{{ spell.name }}</h4>
               <span class="text-sm bg-gray-600 px-2 py-1 rounded">
-                {{ spell.level === 'Природные силы' ? 'Заговор' : `${spell.level} ур.` }}
+                {{ spell.level === 'Природные силы' ? 'Природная сила' : `${spell.level} ур.` }}
               </span>
             </div>
             

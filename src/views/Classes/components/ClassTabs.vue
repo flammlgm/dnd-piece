@@ -1,5 +1,6 @@
 <script setup>
 import { ChevronDown, ChevronUp } from 'lucide-vue-next';
+import VisibilityToggle from '@/components/VisibilityToggle.vue'
 
 defineProps({
   activeTab: String,
@@ -48,14 +49,20 @@ defineEmits(['update:activeTab', 'update:showSubclasses']);
         v-if="showSubclasses"
         class="absolute z-10 mt-1 w-48 bg-gray-800 rounded-lg shadow-lg border border-gray-700"
       >
+      <VisibilityToggle
+        v-for="subclass in subclasses"
+        :key="subclass.id"
+        :content-id="`subclass-${subclass.id}`"
+        content-type="subclass">
         <button 
-          v-for="subclass in subclasses"
-          :key="subclass.id"
+          
           @click="$emit('update:activeTab', `subclass-${subclass.id}`); $emit('update:showSubclasses', false);"
           class="block w-full text-left px-4 py-2 hover:bg-gray-700"
         >
           {{ subclass.name }}
         </button>
+      </VisibilityToggle>
+        
       </div>
     </div>
   </div>
