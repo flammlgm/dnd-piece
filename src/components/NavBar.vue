@@ -28,12 +28,7 @@ const authStore = useAuthStore();
               <div class="ml-3 relative">
                 
                 <div class="flex items-center">
-                  <!-- <nav class="mr-4 space-x-2 font-bold font-mono">
-                    <button 
-                      @click="navigate('/')" 
-                      class="text-white hover:text-gray-300 transition-colors py-2 px-4 rounded-lg hover:bg-gray-700 focus:outline-none">
-                      Главная
-                    </button>
+                  <nav class="mr-4 space-x-2 font-bold font-mono">
                     <button 
                       @click="navigate('/classes')" 
                       class="text-white hover:text-gray-300 transition-colors py-2 px-4 rounded-lg hover:bg-gray-700 focus:outline-none">
@@ -54,7 +49,22 @@ const authStore = useAuthStore();
                       class="text-white hover:text-gray-300 transition-colors py-2 px-4 rounded-lg hover:bg-gray-700 focus:outline-none">
                       Роли
                     </button>
-                  </nav> -->
+                    <button 
+                      @click="navigate('/devil-fruits')" 
+                      class="text-white hover:text-gray-300 transition-colors py-2 px-4 rounded-lg hover:bg-gray-700 focus:outline-none">
+                      Дьяволские фрукты
+                    </button>
+                    <button 
+                      @click="navigate('/users')" 
+                      class="text-white hover:text-gray-300 transition-colors py-2 px-4 rounded-lg hover:bg-gray-700 focus:outline-none">
+                      Игроки
+                    </button>
+                    <button 
+                      @click="navigate('/map')" 
+                      class="text-white hover:text-gray-300 transition-colors py-2 px-4 rounded-lg hover:bg-gray-700 focus:outline-none">
+                      Карта
+                    </button>
+                  </nav>
                   
                   <User class="text-white mx-4 "/>  
                   <span class=" mr-4 font-bold font-mono text-white">{{ authStore.user?.username }}</span>

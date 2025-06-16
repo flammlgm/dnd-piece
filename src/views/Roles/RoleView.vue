@@ -232,14 +232,13 @@ onMounted(() => {
     <!-- Режим просмотра -->
     <div v-else class="flex flex-col lg:flex-row gap-6 items-start">
       <!-- Боковая панель с изображением -->
-      <div class="w-full lg:w-1/3 flex-shrink-0">
-
-          <img 
-            v-if="currentRole.image_path" 
-            :src="currentRole.image_path" 
-            alt="Изображение роли" 
-            class="rounded-2xl w-full h-auto object-cover"
-          />
+      <div class="w-full lg:w-1/3 flex-shrink-0 lg:sticky lg:top-6 lg:self-start h-fit">
+        <img 
+          v-if="currentRole.image_path" 
+          :src="currentRole.image_path" 
+          alt="Изображение роли" 
+          class="rounded-2xl w-full h-auto object-cover"
+        />
       </div>
       
       <!-- Основной контент -->

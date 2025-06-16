@@ -319,7 +319,7 @@ onMounted(() => {
     <!-- Режим просмотра -->
     <div v-else class="flex flex-col lg:flex-row gap-6 items-start">
       <!-- Боковая панель с изображением -->
-      <div class="w-full lg:w-1/3 flex-shrink-0">
+      <div class="w-full lg:w-1/3 flex-shrink-0 lg:sticky lg:top-6 lg:self-start h-fit">
         <img 
           v-if="currentRace.image_path" 
           :src="currentRace.image_path" 

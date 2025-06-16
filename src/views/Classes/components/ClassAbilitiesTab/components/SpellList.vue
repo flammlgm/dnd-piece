@@ -21,7 +21,7 @@ const emit = defineEmits(['view']);
           {{ level === 'Природные силы' ? level : `${level} уровень` }}
         </h3>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div 
             v-for="spell in spells.filter(s => s.level === level).sort((a, b) => a.name.localeCompare(b.name))" 
             :key="spell.id"

@@ -37,11 +37,11 @@ defineEmits(['close']);
     </transition>
   </template>
   
-  <style scoped>
-  .modal-enter-active,
-  .modal-leave-active {
-    transition: opacity 0.3s ease;
-  }
+<style scoped>
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
   
   .modal-enter-from,
   .modal-leave-to {

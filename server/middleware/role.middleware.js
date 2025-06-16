@@ -8,4 +8,4 @@ const roleMiddleware = (allowedRoles) => {
     };
   };
   
-  export default roleMiddleware;
+export default roleMiddleware;

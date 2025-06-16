@@ -25,7 +25,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 const fetchUsers = async () => {
   try {
-    loading.value = true
+    loading.value = true    
     error.value = null
     const response = await axios.get(`${API_URL}/users`, {
       headers: {
