@@ -1,0 +1,109 @@
+```erDiagram
+    users ||--o{ characters : "1:N"
+    users {
+        integer id PK
+        varchar(255) username
+        varchar(500) password_hash
+        user_role role
+        timestamp created_at
+    }
+
+    characters {
+        integer id PK
+        integer user_id FK
+        varchar(255) name
+        text class_name
+        text race_name
+        integer will_id
+        jsonb stats
+        jsonb proficiencies
+        jsonb equipment
+        integer subclass_id FK
+        integer race_id FK
+        integer devil_fruit_id FK
+        integer role_id FK
+    }
+
+    classes ||--o{ subclasses : "1:N"
+    classes ||--o{ spells : "1:N"
+    classes {
+        integer id PK
+        varchar(255) name
+        text description
+        integer hit_dice
+        jsonb proficiencies
+        jsonb features
+    }
+
+    subclasses {
+        integer id PK
+        integer class_id FK
+        varchar(255) name
+        text description
+        jsonb features
+    }
+
+    spells {
+        integer id PK
+        integer class_id FK
+        varchar(255) name
+        varchar(100) school
+        varchar(50) level
+        varchar(100) casting_time
+        text description
+    }
+
+    devil_fruits {
+        integer id PK
+        varchar(255) name
+        devil_type type
+        text description
+        jsonb abilities
+        boolean water_vulnerability
+    }
+
+    races {
+        integer id PK
+        varchar(255) name
+        jsonb base_stats
+        jsonb features
+        integer speed
+        text description
+    }
+
+    roles {
+        integer id PK
+        varchar(255) name
+        text description
+        jsonb features
+    }
+
+    characters }o--|| subclasses : "N:1"
+    characters }o--|| races : "N:1"
+    characters }o--|| devil_fruits : "N:1"
+    characters }o--|| roles : "N:1"
+
+    content_visibility {
+        integer id PK
+        varchar(255) content_id
+        varchar(100) content_type
+        integer[] hidden_for_users
+        timestamp created_at
+    }
+
+    islands {
+        integer id PK
+        varchar(100) name
+        integer x
+        integer y
+        numeric(5,2) monster_chance
+        boolean has_harbor
+    }
+
+    world_entries {
+        integer id PK
+        varchar(255) name
+        world_entry_type type
+        text description
+        bytea image_data
+    }
