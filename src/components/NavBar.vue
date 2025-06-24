@@ -1,6 +1,6 @@
 <script setup>
 import { useAuthStore } from '@/stores/auth';
-import Button from ".Button.vue";
+import Button from "./UI/Button/Button.vue";
 import { useRouter } from "vue-router";
 import { User } from 'lucide-vue-next';
 
